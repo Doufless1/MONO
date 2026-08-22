@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0E1216">
+<title>MONO Companion</title>
+<link rel="manifest" href='data:application/manifest+json,{"name":"MONO Companion","short_name":"MONO","display":"standalone","background_color":"%230E1216","theme_color":"%230E1216","icons":[]}'>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Fira+Sans:wght@400;500;600&family=Fira+Mono:wght@400;500;700&display=swap">
+<style>
+:root{
+  --paper:#E7EBEF;--surface:#F4F6F8;--surface-2:#DDE3E8;
+  --ink:#131922;--ink-2:#3B4652;--muted:#6B7885;
+  --rule:#C4CDD5;--rule-soft:#D6DDE3;
+  --accent:#15618C;--accent-soft:#DCE9F1;
+  --crit:#A3372B;--crit-soft:#F2DDD9;
+  --warn:#8A6318;--warn-soft:#F0E6D2;
+  --good:#2A6B50;--good-soft:#D9E9E1;
+}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0E1216;--surface:#161B21;--surface-2:#1E252C;
+  --ink:#E2E8ED;--ink-2:#B4BEC8;--muted:#828F9C;
+  --rule:#28313A;--rule-soft:#1F262D;
+  --accent:#57A8DA;--accent-soft:#14293A;
+  --crit:#E08272;--crit-soft:#33201C;
+  --warn:#D8AB55;--warn-soft:#2E2517;
+  --good:#67C39A;--good-soft:#162C23;
+}}
+:root[data-theme="dark"]{
+  --paper:#0E1216;--surface:#161B21;--surface-2:#1E252C;
+  --ink:#E2E8ED;--ink-2:#B4BEC8;--muted:#828F9C;
+  --rule:#28313A;--rule-soft:#1F262D;
+  --accent:#57A8DA;--accent-soft:#14293A;
+  --crit:#E08272;--crit-soft:#33201C;
+  --warn:#D8AB55;--warn-soft:#2E2517;
+  --good:#67C39A;--good-soft:#162C23;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--paper);color:var(--ink);
+  font-family:"Fira Sans",system-ui,sans-serif;font-size:15px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom);
+}
+.wrap{max-width:640px;margin:0 auto;padding:0 14px 40px}
+
+header{
+  display:flex;align-items:center;gap:10px;padding:16px 0 12px;
+  border-bottom:1.5px solid var(--ink);margin-bottom:16px;
+  position:sticky;top:0;background:var(--paper);z-index:10;
+}
+.brand{font-family:"Archivo",sans-serif;font-weight:800;font-size:20px;letter-spacing:-.02em}
+.brand span{color:var(--accent)}
+.state-pill{
+  margin-left:auto;font-family:"Fira Mono",monospace;font-size:10.5px;
+  letter-spacing:.1em;text-transform:uppercase;padding:4px 9px;border-radius:2px;
+  border:1px solid var(--rule);color:var(--muted);white-space:nowrap;
+}
+.state-pill.on{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.state-pill.busy{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+.state-pill.err{background:var(--crit-soft);border-color:var(--crit);color:var(--crit)}
+
+.card{border:1px solid var(--rule);background:var(--surface);margin-bottom:14px}
+.card-h{
+  display:flex;align-items:center;gap:8px;padding:9px 14px;
+  border-bottom:1px solid var(--rule);
+  font-family:"Fira Mono",monospace;font-size:10.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--muted);
+}
+.card-b{padding:14px}
+.card-b>:last-child{margin-bottom:0}
+
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:1px;background:var(--rule)}
+.tile{background:var(--surface);padding:11px 13px}
+.tile-k{font-family:"Fira Mono",monospace;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.tile-v{font-family:"Fira Mono",monospace;font-size:18px;font-weight:500;margin-top:3px;font-variant-numeric:tabular-nums}
+.tile-v.sm{font-size:14px}
+.tile-v.good{color:var(--good)}.tile-v.warn{color:var(--warn)}.tile-v.crit{color:var(--crit)}
+
+button{
+  font-family:"Fira Sans",sans-serif;font-size:14px;font-weight:500;
+  padding:10px 14px;border:1px solid var(--ink);background:var(--surface);
+  color:var(--ink);cursor:pointer;border-radius:2px;
+}
+button:hover:not(:disabled){background:var(--surface-2)}
+button:disabled{opacity:.4;cursor:not-allowed}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+button.primary:hover:not(:disabled){opacity:.86;background:var(--ink)}
+button.danger{border-color:var(--crit);color:var(--crit)}
+button.wide{width:100%}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.btns button{flex:1 1 auto;min-width:88px}
+
+.hint{font-size:13px;color:var(--muted);margin:0 0 12px}
+.enroll-step{
+  font-family:"Fira Mono",monospace;font-size:13px;padding:10px 12px;
+  background:var(--accent-soft);border-left:3px solid var(--accent);margin-bottom:10px;
+}
+.enroll-step.done{background:var(--good-soft);border-left-color:var(--good)}
+.enroll-step.fail{background:var(--crit-soft);border-left-color:var(--crit)}
+
+.row{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.row label{flex:1;font-size:13.5px;color:var(--ink-2)}
+.row input{
+  width:92px;font-family:"Fira Mono",monospace;font-size:13px;padding:6px 8px;
+  border:1px solid var(--rule);background:var(--paper);color:var(--ink);border-radius:2px;
+  text-align:right;font-variant-numeric:tabular-nums;
+}
+.row input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.row .unit{font-family:"Fira Mono",monospace;font-size:11px;color:var(--muted);width:24px}
+
+#log{
+  font-family:"Fira Mono",monospace;font-size:11.5px;line-height:1.65;
+  max-height:220px;overflow-y:auto;background:var(--paper);
+  border:1px solid var(--rule-soft);padding:9px 11px;white-space:pre-wrap;word-break:break-word;
+}
+#log .t{color:var(--muted)}
+#log .rx{color:var(--ink-2)}
+#log .tx{color:var(--accent)}
+#log .ev{color:var(--warn)}
+#log .er{color:var(--crit)}
+
+.banner{padding:12px 14px;border-left:3px solid var(--crit);background:var(--crit-soft);margin-bottom:14px;font-size:13.5px}
+.banner.info{border-left-color:var(--accent);background:var(--accent-soft)}
+.banner strong{display:block;margin-bottom:3px}
+.banner code{font-family:"Fira Mono",monospace;font-size:12px}
+a{color:var(--accent)}
+.fix{font-family:"Fira Mono",monospace;font-size:13px;font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="brand">MONO<span>.</span></div>
+  <div class="state-pill" id="pill">Offline</div>
+</header>
+
+<div class="banner" id="unsupported" hidden>
+  <strong>This browser can't talk to Bluetooth</strong>
+  Web Bluetooth works in Chrome, Edge, Opera and Samsung Internet on Android
+  and desktop. Safari has never supported it on any version, so iPhone needs
+  a native app or the free nRF Connect instead.
+</div>
+
+<div class="banner info" id="insecure" hidden>
+  <strong>Needs HTTPS</strong>
+  Web Bluetooth only runs on a secure origin. Host this file on GitHub Pages
+  (free, gives you HTTPS) or open it from <code>localhost</code>.
+</div>
+
+<button class="primary wide" id="connect" style="margin-bottom:14px">Connect to wallet</button>
+
+<div class="card">
+  <div class="card-h">Status</div>
+  <div class="tiles">
+    <div class="tile"><div class="tile-k">State</div><div class="tile-v sm" id="t-state">&mdash;</div></div>
+    <div class="tile"><div class="tile-k">Battery</div><div class="tile-v" id="t-batt">&mdash;</div></div>
+    <div class="tile"><div class="tile-k">Prints</div><div class="tile-v" id="t-prints">&mdash;</div></div>
+    <div class="tile"><div class="tile-k">Latch</div><div class="tile-v sm" id="t-latch">&mdash;</div></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-h">Fingerprints</div>
+  <div class="card-b">
+    <div class="enroll-step" id="enroll-step" hidden></div>
+    <p class="hint">Enrolling takes two presses of the same finger. The template is stored on the sensor module, never on your phone.</p>
+    <div class="btns">
+      <button id="b-enroll">Add finger</button>
+      <button id="b-cancel" hidden>Cancel</button>
+      <button id="b-delete">Delete by ID</button>
+      <button class="danger" id="b-deleteall">Delete all</button>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-h">Controls</div>
+  <div class="card-b">
+    <div class="btns">
+      <button id="b-ring">Ring it</button>
+      <button id="b-lock">Lock</button>
+      <button id="b-unlock">Unlock</button>
+      <button id="b-clear">Clear alarm</button>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-h">Last seen</div>
+  <div class="card-b">
+    <p class="hint">Your wallet has no GPS. Your phone records where it was standing when the link dropped &mdash; so this is where you lost it, not where it is now. For live location the wallet has to reach Apple's Find My network; see the build sheet.</p>
+    <div class="fix" id="lastfix">No fix recorded yet.</div>
+    <div class="btns" style="margin-top:11px">
+      <button id="b-fix">Record position now</button>
+      <button id="b-map" disabled>Open in maps</button>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-h">Settings</div>
+  <div class="card-b">
+    <div class="row"><label for="s-relock">Relock after</label>
+      <input id="s-relock" type="number" min="1000" max="60000" step="500"><span class="unit">ms</span></div>
+    <div class="row"><label for="s-tamper">Tamper threshold</label>
+      <input id="s-tamper" type="number" min="500" max="8000" step="100"><span class="unit">mg</span></div>
+    <div class="row"><label for="s-sepwarn">Separation warning</label>
+      <input id="s-sepwarn" type="number" min="5" max="3600" step="5"><span class="unit">s</span></div>
+    <div class="row"><label for="s-sepalert">Separation alarm</label>
+      <input id="s-sepalert" type="number" min="10" max="7200" step="5"><span class="unit">s</span></div>
+    <div class="row"><label for="s-maxfails">Failed tries allowed</label>
+      <input id="s-maxfails" type="number" min="1" max="20" step="1"><span class="unit"></span></div>
+    <div class="btns" style="margin-top:12px">
+      <button id="b-read">Read from wallet</button>
+      <button class="primary" id="b-save">Save to wallet</button>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-h">Console <span style="margin-left:auto;text-transform:none;letter-spacing:0" class="muted">everything the wallet says</span></div>
+  <div class="card-b">
+    <div id="log"></div>
+    <div class="btns" style="margin-top:10px">
+      <button id="b-status">Refresh status</button>
+      <button id="b-clearlog">Clear log</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+"use strict";
+// Nordic UART Service - what the firmware's BLEUart exposes.
+const NUS  = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
+const RX   = "6e400002-b5a3-f393-e0a9-e50e24dcca9e"; // phone -> wallet
+const TX   = "6e400003-b5a3-f393-e0a9-e50e24dcca9e"; // wallet -> phone
+
+const STATE_NAMES = ["Asleep","Scanning","Unlocked","Rejected","Locked out","LOCKDOWN"];
+
+let device=null, rxChar=null, rxBuf="";
+const $ = id => document.getElementById(id);
+
+/* Storage is wrapped because it throws in some embedded/preview contexts and
+   comes back empty in private windows. The app must work either way. */
+const mem = {};
+const store = {
+  get(k){ try { return localStorage.getItem(k); } catch(e){ return mem[k] ?? null; } },
+  set(k,v){ try { localStorage.setItem(k,v); } catch(e){ mem[k]=v; } }
+};
+
+// ------------------------------------------------------------------ log --
+function log(msg, cls){
+  const el = $("log");
+  const t = new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit",second:"2-digit"});
+  const line = document.createElement("div");
+  const ts = document.createElement("span"); ts.className="t"; ts.textContent = t+"  ";
+  const bd = document.createElement("span"); bd.className=cls||"rx"; bd.textContent = msg;
+  line.append(ts,bd); el.append(line);
+  while (el.childElementCount > 300) el.firstChild.remove();
+  el.scrollTop = el.scrollHeight;
+}
+
+function pill(text, cls){ const p=$("pill"); p.textContent=text; p.className="state-pill"+(cls?" "+cls:""); }
+
+// ------------------------------------------------------------ transport --
+async function connect(){
+  if (!navigator.bluetooth){ $("unsupported").hidden=false; return; }
+  try{
+    pill("Pairing…","busy");
+    device = await navigator.bluetooth.requestDevice({
+      filters:[{namePrefix:"MONO"}], optionalServices:[NUS]
+    });
+    device.addEventListener("gattserverdisconnected", onDisconnected);
+    const server = await device.gatt.connect();
+    const svc    = await server.getPrimaryService(NUS);
+    rxChar       = await svc.getCharacteristic(RX);
+    const txChar = await svc.getCharacteristic(TX);
+    await txChar.startNotifications();
+    txChar.addEventListener("characteristicvaluechanged", onNotify);
+
+    pill("Connected","on");
+    $("connect").textContent = "Disconnect";
+    log("connected to "+(device.name||"MONO"), "ev");
+    recordFix(true);
+    send("STATUS"); send("GET");
+  }catch(err){
+    pill("Offline");
+    log("connect failed: "+err.message, "er");
+  }
+}
+
+function onDisconnected(){
+  pill("Offline");
+  $("connect").textContent = "Connect to wallet";
+  rxChar = null;
+  log("link lost", "er");
+  // The moment the link drops is the only moment we can honestly claim to
+  // know where the wallet was, so grab a fix right now.
+  recordFix(false);
+}
+
+function disconnect(){ if (device && device.gatt.connected) device.gatt.disconnect(); }
+
+function onNotify(e){
+  rxBuf += new TextDecoder().decode(e.target.value);
+  let i;
+  while ((i = rxBuf.indexOf("\n")) >= 0){
+    const line = rxBuf.slice(0,i).trim();
+    rxBuf = rxBuf.slice(i+1);
+    if (line) handleLine(line);
+  }
+}
+
+async function send(cmd){
+  if (!rxChar){ log("not connected", "er"); return; }
+  log("> "+cmd, "tx");
+  await rxChar.writeValue(new TextEncoder().encode(cmd+"\n"));
+}
+
+// -------------------------------------------------------------- parsing --
+function kv(line){
+  const o = {};
+  line.split(/\s+/).slice(1).forEach(p => { const [k,v]=p.split("="); if(k&&v!==undefined) o[k]=v; });
+  return o;
+}
+
+function handleLine(line){
+  const head = line.split(" ")[0];
+  log(line, head==="EVT" ? "ev" : (head==="ERR" ? "er" : "rx"));
+
+  if (head === "STATUS"){
+    const s = kv(line);
+    const st = parseInt(s.state,10);
+    $("t-state").textContent = STATE_NAMES[st] ?? s.state;
+    $("t-prints").textContent = s.templates ?? "—";
+    const v = parseFloat(s.vbat);
+    const bt = $("t-batt");
+    bt.textContent = isNaN(v) ? "—" : v.toFixed(2)+"V";
+    bt.className = "tile-v " + (v>3.8?"good":v>3.5?"warn":"crit");
+    const lt = $("t-latch");
+    lt.textContent = st===2 ? "Open" : (st===5 ? "LOCKDOWN" : "Locked");
+    lt.className = "tile-v sm " + (st===5?"crit":st===2?"warn":"good");
+  }
+  else if (head === "GET"){
+    const s = kv(line);
+    if(s.relock)   $("s-relock").value   = s.relock;
+    if(s.tamper)   $("s-tamper").value   = s.tamper;
+    if(s.sepwarn)  $("s-sepwarn").value  = s.sepwarn;
+    if(s.sepalert) $("s-sepalert").value = s.sepalert;
+    if(s.maxfails) $("s-maxfails").value = s.maxfails;
+  }
+  else if (head === "ENROLL"){
+    const w = line.split(" ")[1];
+    const box = $("enroll-step");
+    box.hidden = false;
+    box.className = "enroll-step";
+    const busy = ["start","place","lift","again"].includes(w);
+    $("b-cancel").hidden = !busy;
+    $("b-enroll").disabled = busy;
+    if (w==="place")      box.textContent = "Rest your finger on the sensor…";
+    else if (w==="lift")  box.textContent = "Good. Now lift your finger.";
+    else if (w==="again") box.textContent = "Place the same finger again…";
+    else if (w==="ok"){   box.textContent = "Enrolled as ID "+(kv(line).id??"?"); box.className="enroll-step done"; send("STATUS"); }
+    else if (w==="fail"){ box.textContent = "Failed: "+(line.split(" ")[2]||"unknown"); box.className="enroll-step fail"; }
+    else if (w==="busy")  box.textContent = "Already enrolling.";
+    else if (w==="start") box.textContent = "Starting…";
+  }
+  else if (head === "EVT"){
+    const w = line.split(" ")[1];
+    if (w==="tamper" || w==="separation") recordFix(false);
+    if (w==="unlocked"||w==="relocked"||w==="lockout"||w==="tamper") send("STATUS");
+  }
+  else if (["DELETE","DELETEALL"].includes(head)) send("STATUS");
+}
+
+// ------------------------------------------------------------- location --
+function showFix(){
+  const raw = store.get("mono.lastfix");
+  if (!raw){ $("lastfix").textContent = "No fix recorded yet."; return; }
+  let f; try { f = JSON.parse(raw); } catch(e){ return; }
+  const when = new Date(f.ts);
+  const mins = Math.round((Date.now()-f.ts)/60000);
+  const ago = mins<1 ? "just now" : mins<60 ? mins+" min ago" : Math.round(mins/60)+" h ago";
+  $("lastfix").innerHTML =
+    `<div>${f.lat.toFixed(5)}, ${f.lon.toFixed(5)}</div>` +
+    `<div class="muted" style="font-size:12px;margin-top:3px">` +
+    `&plusmn;${Math.round(f.acc)} m &middot; ${when.toLocaleString()} &middot; ${ago}` +
+    `${f.linked ? " &middot; on connect" : " &middot; when link dropped"}</div>`;
+  $("b-map").disabled = false;
+  $("b-map").onclick = () =>
+    window.open(`https://www.openstreetmap.org/?mlat=${f.lat}&mlon=${f.lon}#map=18/${f.lat}/${f.lon}`,"_blank","noopener");
+}
+
+function recordFix(linked){
+  if (!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(
+    p => {
+      store.set("mono.lastfix", JSON.stringify({
+        lat:p.coords.latitude, lon:p.coords.longitude,
+        acc:p.coords.accuracy, ts:Date.now(), linked:!!linked
+      }));
+      showFix();
+      log("position recorded", "ev");
+    },
+    e => log("location unavailable: "+e.message, "er"),
+    {enableHighAccuracy:true, timeout:10000, maximumAge:30000}
+  );
+}
+
+// --------------------------------------------------------------- wiring --
+$("connect").onclick = () => (device && device.gatt.connected) ? disconnect() : connect();
+$("b-enroll").onclick    = () => send("ENROLL");
+$("b-cancel").onclick    = () => { send("CANCEL"); $("enroll-step").hidden=true; $("b-enroll").disabled=false; $("b-cancel").hidden=true; };
+$("b-deleteall").onclick = () => { if (confirm("Delete every enrolled fingerprint?")) send("DELETEALL"); };
+$("b-delete").onclick    = () => { const id = prompt("Delete which fingerprint ID?"); if (id) send("DELETE "+parseInt(id,10)); };
+$("b-ring").onclick   = () => send("RING");
+$("b-lock").onclick   = () => send("LOCK");
+$("b-unlock").onclick = () => send("UNLOCK");
+$("b-clear").onclick  = () => send("CLEAR");
+$("b-status").onclick = () => send("STATUS");
+$("b-read").onclick   = () => send("GET");
+$("b-fix").onclick    = () => recordFix(true);
+$("b-clearlog").onclick = () => { $("log").textContent = ""; };
+$("b-save").onclick = async () => {
+  const map = {relock:"s-relock", tamper:"s-tamper", sepwarn:"s-sepwarn",
+               sepalert:"s-sepalert", maxfails:"s-maxfails"};
+  for (const [key,id] of Object.entries(map)){
+    const v = $(id).value;
+    if (v !== "") { await send(`SET ${key} ${v}`); await new Promise(r=>setTimeout(r,90)); }
+  }
+  send("GET");
+};
+
+if (!navigator.bluetooth) $("unsupported").hidden = false;
+if (!window.isSecureContext) $("insecure").hidden = false;
+showFix();
+log("ready — pair with the wallet to begin");
+</script>
+</body>
+</html>

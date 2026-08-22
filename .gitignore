@@ -1,0 +1,8 @@
+# build artifacts
+tests/build/
+__pycache__/
+*.pyc
+
+# generated geometry - regenerate with: python mono_wallet_cad.py
+# (kept in tree for now so prints are reproducible; drop this comment if you
+#  would rather not version 700 KB of mesh)
