@@ -10,41 +10,10 @@
                           current draw. Those need the hardware.
    ========================================================================= */
 
-#include "mocks/Arduino.h"
-#include "mocks/Adafruit_Fingerprint.h"
-#include "mocks/bluefruit.h"
-#include "mocks/Servo.h"
-#include "mocks/Adafruit_LittleFS.h"
-#include "mocks/LSM6DS3.h"
-
-// ------------------------------------------------- mock global storage ----
-uint32_t g_millis = 0;
-std::vector<Beep> g_beeps;
-std::vector<int>  g_servoWrites;
-std::vector<std::string> g_out;
-int   g_pinState[64] = {0};
-float g_vbatRaw = 1868.0f;              // ~4.05 V through the 1510/510 divider
-MockSerial Serial, Serial1;
-MockFP     g_fp;
-MockIMU    g_imu;
-AdvState   g_adv;
-ble_gap_addr_t g_addr;
-bool g_connected = false;
-MockBluefruit Bluefruit;
-int  g_servoAngle = -1;
-bool g_servoAttached = false;
-Adafruit_LittleFS_Namespace::MockFS InternalFS;
-
-bool g_wakeOverride = false;
-int  g_wakeValue = LOW;
-
-int digitalRead(int pin) {
-  if (pin == 2) {                       // PIN_FP_WAKE - the R502 touch line
-    if (g_wakeOverride) return g_wakeValue;
-    return g_fp.platen == PLATEN_EMPTY ? LOW : HIGH;
-  }
-  return pin < 64 ? g_pinState[pin] : LOW;
-}
+// Every mocked global lives in one place, shared with mono_sim.cpp so the
+// simulator and the test suite can never diverge. g_sleepHook stays null here,
+// which is what makes a 30-second lockout test finish instantly.
+#include "mocks/mock_impl.h"
 
 // ================= the firmware under test, included verbatim =============
 #include "../mono_firmware/mono_firmware.ino"

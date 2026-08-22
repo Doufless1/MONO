@@ -22,7 +22,15 @@
 // ------------------------------------------------------------ the clock --
 extern uint32_t g_millis;
 inline uint32_t millis() { return g_millis; }
-inline void delay(uint32_t ms) { g_millis += ms; }   // blocking == time passes
+
+/* Blocking == time passes. The test harness leaves g_sleepHook null so a
+   6-second relock costs nothing; the interactive simulator points it at a real
+   sleep so the wallet behaves at wall-clock speed for a human at the app. */
+extern void (*g_sleepHook)(uint32_t);
+inline void delay(uint32_t ms) {
+  if (g_sleepHook) g_sleepHook(ms);
+  g_millis += ms;
+}
 
 // ------------------------------------------------------------- recorders --
 struct Beep { uint16_t freq, ms; uint32_t at; };
