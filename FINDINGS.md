@@ -1,16 +1,25 @@
 # MONO prototype — what the hardware-free test run found
 
-Ran on 2026-08-22. Firmware **110/110** logic assertions pass, CAD **71/72**
-geometry checks pass, and the companion app talks to a simulated wallet
-end to end. Nothing here blocks ordering parts. The list below is what to fix
-before, or shortly after, the components land.
+Ran on 2026-08-22, re-verified 2026-08-23 against the ONYX app rebuild.
+Firmware **110/110** logic assertions pass, CAD **71/72** geometry checks pass,
+and the companion app talks to a simulated wallet end to end. Nothing here
+blocks ordering parts.
+
+**Status since first run:** the companion app was rebuilt as the ONYX phone UI
+(commits `a874c9a`, `f001353`). A1 below is **fixed** in that rebuild and
+re-verified at runtime. Everything under Firmware and CAD is unchanged and
+still open — those files were not touched.
 
 ---
 
 ## App
 
 ### A1 — Lock, Unlock and Clear alarm leave the UI showing the opposite of reality
-**Severity: high (it is the bug most likely to make you distrust a working wallet).**
+**Severity: high. FIXED in the ONYX rebuild — verified against the simulator on
+2026-08-23:** the app now refreshes on `LOCK ok` / `UNLOCK ok` / `CLEAR ok` and on
+`EVT lockdown`, and the screen tracks the wallet without a manual refresh
+(`UNLOCK` → "Open", `LOCK` → "Locked", shake → "Locked down" with the alarm card
+shown). The original report is kept below for the record.
 
 `handleLine()` refreshes the status tiles after `ENROLL ok`, `DELETE`, `DELETEALL`
 and four `EVT` types — but not after `LOCK ok`, `UNLOCK ok` or `CLEAR ok`.
@@ -73,6 +82,18 @@ template will usually match and the wallet will pop open the instant you finish
 enrolling — surprising, though arguably convenient. If the fresh template does
 *not* match cleanly it silently burns attempts toward the 30-second lockout.
 Consider requiring a lift before scanning resumes after `ENROLL ok`.
+
+### F5 — The wallet goes deaf for over a second during its own alarms
+**Severity: low, but know about it.** `beep()` is `tone()` followed by `delay()`,
+so alarm and ring sequences block the main loop: about **1.25 s** for a tamper
+(latch move plus six beeps) and **1.6 s** for `RING`. Commands sent during that
+window are not dropped — they queue and answer late — but the app looks
+unresponsive, and continuous shaking re-triggers the sequence so the wallet can
+stay blocked for as long as the shaking lasts.
+
+This is also the reason naive UI timing tests flake: measured 3.5 s after a
+shake, the screen can still legitimately be showing the pre-tamper state. It is
+worth non-blocking beeps eventually, on the same pass as the `__WFE()` sleep work.
 
 ### F4 — Find My is wired but inert
 **Severity: none, expected.** `FINDMY_PUBLIC_KEY` is still 28 zero bytes and
@@ -148,6 +169,15 @@ looks-only shell, which is what it is for.
   configured times and switches the radio to the fast beacon only on the alert.
 - Enrolment is genuinely non-blocking: BLE stays responsive throughout, which
   was the point of the v2 rewrite.
+
+## Housekeeping
+
+An empty 0-byte file named `git` is committed at the repo root — almost
+certainly a mistyped redirect. Safe to remove:
+
+```bash
+git rm --cached git && rm git
+```
 
 ## What none of this can tell you
 
