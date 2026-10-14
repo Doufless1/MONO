@@ -3,1301 +3,330 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0B0B0B">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B0B0B" media="(prefers-color-scheme: dark)">
+<meta name="description" content="ONYX - the companion app for the MONO fingerprint wallet. Open it, ring it, and find where you left it.">
 <title>ONYX</title>
-<link rel="manifest" href='data:application/manifest+json,{"name":"ONYX","short_name":"ONYX","display":"standalone","background_color":"%230B0B0B","theme_color":"%230B0B0B","icons":[]}'>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap">
-<style>
-/* ===================================================================
-   ONYX - the nine colours the design uses, and nothing else.
-   =================================================================== */
-:root{
-  --ink:#0B0B0B;    /* every black: text, dark cards, filled controls */
-  --paper:#fff;
-  --rule:#E6E6E6;   /* card borders and row separators */
-  --wash:#F5F5F5;   /* hover, and the selected row in a choice list */
-  --body:#4A4A4A;   /* paragraph text */
-  --meta:#6B6B6B;   /* the small second line under a title */
-  --chev:#7A7A7A;   /* chevrons and muted glyphs */
-  --edge:#DADADA;   /* border of a light pill button */
-  --ring:#D2D2D2;   /* the unpicked radio ring */
-  --ease:cubic-bezier(.22,1,.36,1);
-
-  /* The design sits in a 402x874 phone mock whose 62px top padding clears a
-     drawn status bar. Running for real there is a real status bar instead, so
-     take whichever is larger: the design's figure, or the notch plus a gap. */
-  --pad-top:max(62px, calc(env(safe-area-inset-top, 0px) + 14px));
-  --pad-bot:max(44px, calc(env(safe-area-inset-bottom, 0px) + 24px));
-}
-
-*{box-sizing:border-box}
-html,body{margin:0}
-body{
-  background:var(--paper);color:var(--ink);
-  font-family:"Open Sans",system-ui,sans-serif;
-  -webkit-font-smoothing:antialiased;
-}
-a{color:var(--ink)}
-a:hover{color:var(--body)}
-button{font-family:"Open Sans",system-ui,sans-serif}
-
-@keyframes ox-rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-@keyframes ox-fade{from{opacity:0}to{opacity:1}}
-@keyframes ox-veil{from{opacity:1}to{opacity:0;visibility:hidden}}
-@keyframes ox-draw{from{stroke-dashoffset:126}to{stroke-dashoffset:0}}
-@keyframes ox-bolt{0%{transform:translateX(-7px);opacity:0}60%{opacity:1}100%{transform:none;opacity:1}}
-@keyframes ox-track{from{opacity:0;letter-spacing:.62em}to{opacity:1;letter-spacing:.26em}}
-@keyframes ox-sheen{from{opacity:0;transform:scale(.6)}45%{opacity:.5}to{opacity:0;transform:scale(1.9)}}
-@keyframes ox-beat{0%,100%{transform:scale(1)}50%{transform:scale(1.09)}}
-@media (prefers-reduced-motion:reduce){
-  *{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
-}
-
-/* ------------------------------------------------------------- shell -- */
-#app{
-  position:relative;max-width:520px;margin:0 auto;
-  min-height:100vh;min-height:100dvh;background:var(--paper);
-}
-.screen{display:none;padding:var(--pad-top) 0 var(--pad-bot)}
-.screen.on{display:block}
-/* Enrolment is the one full-height, centred screen. */
-.screen.tall{min-height:100vh;min-height:100dvh;flex-direction:column;padding:var(--pad-top) 20px var(--pad-bot)}
-.screen.tall.on{display:flex}
-
-/* -------------------------------------------------------- typography -- */
-.t-hero-label{font:700 11px/1 "Open Sans",sans-serif;letter-spacing:.18em;color:rgba(255,255,255,.55)}
-.t-hero-title{font:600 34px/1.15 "Open Sans",sans-serif;letter-spacing:-.025em;margin-top:12px}
-.t-hero-sub{font:400 16px/1.45 "Open Sans",sans-serif;color:rgba(255,255,255,.68);margin-top:8px}
-.t-page{font:600 30px/1.2 "Open Sans",sans-serif;letter-spacing:-.025em}
-.t-lede{font:400 17px/1.55 "Open Sans",sans-serif;color:var(--body);margin:12px 0 0}
-.t-group{font:700 11px/1 "Open Sans",sans-serif;letter-spacing:.16em;color:var(--meta);margin:30px 0 12px}
-.t-crumb{font:600 19px/1 "Open Sans",sans-serif}
-.t-row{font:400 17px/1.3 "Open Sans",sans-serif}
-.t-rowval{font:600 17px/1.3 "Open Sans",sans-serif}
-.t-rowval.num{font-variant-numeric:tabular-nums}
-.t-detail{font:600 16px/1.3 "Open Sans",sans-serif}
-.t-detail.num{font-variant-numeric:tabular-nums}
-.t-dim{color:var(--body);flex:none;white-space:nowrap}
-.t-foot{font:400 15px/1.5 "Open Sans",sans-serif;color:var(--meta);margin:18px 2px 0}
-
-/* ------------------------------------------------------------ topbar -- */
-.topbar{display:flex;align-items:center;padding:14px 20px 18px;animation:ox-rise .5s var(--ease) both}
-.brandwrap{display:flex;align-items:center;gap:10px;background:none;border:0;padding:0;cursor:pointer;
-  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-.brand{font:700 20px/1 "Open Sans",sans-serif;letter-spacing:.26em;color:var(--ink)}
-.linkpill{
-  margin-left:auto;display:flex;align-items:center;gap:7px;height:32px;
-  padding:0 12px 0 10px;border:1px solid var(--rule);border-radius:999px;
-  white-space:nowrap;flex:none;background:var(--paper);cursor:pointer;
-  transition:transform .13s var(--ease),background .16s ease;
-}
-.linkpill:hover{background:var(--wash)}
-.linkpill:active{transform:scale(.975)}
-.linkpill span{font:600 12px/1 "Open Sans",sans-serif;color:var(--body)}
-
-/* -------------------------------------------------------- dark cards -- */
-.darkcard{margin:0 20px 14px;padding:22px;background:var(--ink);border-radius:24px;color:#fff;
-  animation:ox-rise .5s var(--ease) both}
-.darkcard-title{font:600 26px/1.2 "Open Sans",sans-serif;letter-spacing:-.02em;margin-top:12px}
-.darkcard p{font:400 16px/1.5 "Open Sans",sans-serif;color:rgba(255,255,255,.7);margin:10px 0 18px}
-.hero{margin:0 20px;padding:24px 22px 22px;background:var(--ink);border-radius:26px;color:#fff;
-  animation:ox-rise .55s var(--ease) .05s both}
-.hero-map{position:relative;height:132px;margin:20px -22px 0;overflow:hidden}
-.hero-halo{position:absolute;left:50%;top:66px;transform:translate(-50%,-50%);
-  width:74px;height:74px;border-radius:999px;background:rgba(255,255,255,.09)}
-.hero-dot{position:absolute;left:50%;top:66px;transform:translate(-50%,-50%);
-  width:15px;height:15px;border-radius:999px;background:#fff;box-shadow:0 0 0 4px var(--ink)}
-.hero-fade{position:absolute;inset:auto 0 0 0;height:44px;background:linear-gradient(#0B0B0B00,#0B0B0B)}
-.hero-btns{display:flex;gap:10px;margin-top:2px}
-
-/* ------------------------------------------------------ cards & rows -- */
-.card{border:1px solid var(--rule);border-radius:22px;overflow:hidden}
-.card.tight{margin:24px 0 0}
-.row{display:flex;align-items:center;gap:15px;min-height:64px;padding:0 20px;border-bottom:1px solid var(--rule)}
-.row:last-child{border-bottom:0}
-.row.tall{min-height:68px}
-.row.detail{gap:14px;min-height:60px}
-.row .grow{flex:1}
-.row .label{flex:1;font:400 17px/1.3 "Open Sans",sans-serif}
-.row .label.dim{color:var(--body)}
-.rowbtn{
-  display:flex;align-items:center;gap:15px;width:100%;min-height:64px;padding:0 20px;
-  background:var(--paper);border:0;border-bottom:1px solid var(--rule);cursor:pointer;
-  transition:transform .13s var(--ease),background .16s ease;text-align:left;color:var(--ink);
-}
-.rowbtn:last-child{border-bottom:0}
-.rowbtn:hover{background:var(--wash)}
-.rowbtn.tall{gap:13px;min-height:68px;padding:0 18px}
-.rowbtn .label{flex:1;font:400 17px/1.3 "Open Sans",sans-serif}
-.rowbtn .label.strong{font-weight:600}
-
-/* ----------------------------------------------------------- buttons -- */
-.btn{cursor:pointer;transition:transform .13s var(--ease),background .16s ease;
-  display:flex;align-items:center;justify-content:center}
-.btn:disabled{cursor:default}
-.btn-dark{min-height:60px;border-radius:999px;border:0;background:var(--ink);color:#fff;
-  font:600 18px/1 "Open Sans",sans-serif;gap:10px}
-.btn-dark:active:not(:disabled){transform:scale(.975)}
-.btn-light{min-height:56px;border-radius:999px;border:1px solid var(--edge);background:var(--paper);
-  color:var(--ink);font:600 17px/1 "Open Sans",sans-serif;gap:9px}
-.btn-light:hover:not(:disabled){background:var(--wash)}
-.btn-ghost{flex:1;min-height:52px;border-radius:999px;border:1px solid rgba(255,255,255,.32);
-  background:transparent;color:#fff;font:600 16px/1 "Open Sans",sans-serif}
-.btn-ghost:hover{background:rgba(255,255,255,.1)}
-.btn-onlight{flex:1;min-height:52px;border-radius:999px;border:0;background:#fff;color:var(--ink);
-  font:600 16px/1 "Open Sans",sans-serif;gap:8px}
-.btn-wide-light{width:100%;min-height:56px;border-radius:999px;border:0;background:#fff;color:var(--ink);
-  font:600 17px/1 "Open Sans",sans-serif}
-.btn-back{width:48px;height:48px;border:0;background:transparent;border-radius:999px;flex:none}
-.btn-back:hover{background:var(--wash)}
-.btn-remove{min-height:48px;padding:0 16px;border:1px solid var(--edge);border-radius:999px;
-  background:var(--paper);color:var(--ink);font:600 14px/1 "Open Sans",sans-serif;flex:none}
-.btn-remove:hover{background:var(--wash)}
-.btn-quiet{width:100%;min-height:48px;margin-top:26px;border:0;background:transparent;color:var(--meta);
-  font:400 15px/1 "Open Sans",sans-serif;text-decoration:underline;text-underline-offset:3px}
-.btn-quiet:hover{color:var(--ink)}
-.btn-alt{min-height:52px;border-radius:999px;border:0;background:transparent;color:var(--body);
-  font:600 16px/1 "Open Sans",sans-serif}
-.btn-alt:hover{background:var(--wash)}
-.stack{display:flex;flex-direction:column;gap:12px}
-.crumb{display:flex;align-items:center;gap:6px;padding:10px 12px 12px}
-
-/* ------------------------------------------------------------- pages -- */
-.page{padding:8px 20px 0;animation:ox-rise .55s var(--ease) .06s both}
-.page.find{padding:26px 20px 0;animation-delay:.1s}
-.homecard{margin:26px 20px 0;animation:ox-rise .55s var(--ease) .13s both}
-.homeactions{margin:26px 20px 0;animation:ox-rise .55s var(--ease) .21s both}
-
-/* ------------------------------------------------------------ prints -- */
-.printrow{display:flex;align-items:center;gap:15px;min-height:68px;padding:0 20px;
-  border-bottom:1px solid var(--rule)}
-.printname{background:none;border:0;padding:0;text-align:left;cursor:pointer;font:inherit;color:inherit;flex:1}
-.printname:hover .t-row{text-decoration:underline;text-underline-offset:3px}
-.printmeta{font:400 14px/1.3 "Open Sans",sans-serif;color:var(--meta);margin-top:2px}
-
-/* ------------------------------------------------------------ enroll -- */
-.dots{display:flex;align-items:center;gap:8px;height:48px}
-.dots .bar{height:4px;flex:1;border-radius:999px;background:var(--rule)}
-.dots .bar.on{background:var(--ink)}
-.enroll-mid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  text-align:center;padding-bottom:40px;animation:ox-rise .55s var(--ease) .05s both}
-.pad{position:relative;width:196px;height:196px;display:flex;align-items:center;justify-content:center}
-.pad-edge{position:absolute;inset:0;border-radius:999px;border:1px solid var(--rule)}
-.pad-fill{position:absolute;inset:22px;border-radius:999px;background:var(--wash);transition:background .35s ease}
-.pad-fill.done{background:var(--ink)}
-.pad svg{position:relative;transition:stroke .35s ease}
-.enroll-title{font:600 28px/1.25 "Open Sans",sans-serif;letter-spacing:-.02em;margin-top:40px;max-width:300px}
-.enroll-body{font:400 17px/1.55 "Open Sans",sans-serif;color:var(--body);margin:12px 0 0;max-width:300px}
-
-/* ------------------------------------------------------------ choice -- */
-.choicebtn{
-  display:flex;align-items:center;gap:16px;width:100%;min-height:74px;padding:0 20px;
-  background:var(--paper);border:0;border-bottom:1px solid var(--rule);cursor:pointer;
-  transition:transform .13s var(--ease),background .16s ease;text-align:left;color:var(--ink);
-}
-.choicebtn:last-child{border-bottom:0}
-.choicebtn:hover{background:var(--wash)}
-.choicebtn.on{background:var(--wash)}
-.choicebtn .lab{font:600 17px/1.3 "Open Sans",sans-serif}
-.choicebtn .note{font:400 14.5px/1.35 "Open Sans",sans-serif;color:var(--meta);margin-top:3px}
-.tickring{width:26px;height:26px;border-radius:999px;border:1.5px solid var(--ring);background:transparent;
-  display:flex;align-items:center;justify-content:center;flex:none}
-.choicebtn.on .tickring{border-color:var(--ink);background:var(--ink)}
-.tickring svg{opacity:0}
-.choicebtn.on .tickring svg{opacity:1}
-
-/* ------------------------------------------------------ hold overlay -- */
-.overlay{
-  position:fixed;inset:0;z-index:80;background:var(--ink);color:#fff;display:none;
-  flex-direction:column;max-width:520px;margin:0 auto;
-  /* The design offset this sheet by 52px to leave the drawn status bar showing.
-     Running full-bleed it covers the screen instead, so the close button clears
-     the real notch rather than a fixed figure. */
-  padding:max(20px, calc(env(safe-area-inset-top, 0px) + 10px)) 24px var(--pad-bot);
-}
-.overlay.on{display:flex}
-.overlay-top{display:flex}
-.btn-close{width:48px;height:48px;margin-left:auto;border:0;background:rgba(255,255,255,.1);border-radius:999px}
-.btn-close:hover{background:rgba(255,255,255,.18)}
-.hold-mid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  text-align:center;padding-bottom:24px}
-.holdpad{position:relative;width:236px;height:236px;display:flex;align-items:center;justify-content:center;
-  cursor:pointer;touch-action:none;-webkit-user-select:none;user-select:none}
-.holdpad svg.ring{position:absolute;transform:rotate(-90deg)}
-#holdArc{transition:stroke-dashoffset 260ms linear}
-.holdpad.holding #holdArc{transition:stroke-dashoffset 950ms linear}
-.holdcore{width:150px;height:150px;border-radius:999px;background:rgba(255,255,255,.1);
-  display:flex;align-items:center;justify-content:center;transition:background .3s ease}
-.holdcore.done{background:#fff}
-.holdcore svg{transition:stroke .3s ease}
-.hold-title{font:600 30px/1.2 "Open Sans",sans-serif;letter-spacing:-.025em;margin-top:44px}
-.hold-body{font:400 17px/1.55 "Open Sans",sans-serif;color:rgba(255,255,255,.66);margin:12px 0 0;max-width:290px}
-.btn-holdcta{min-height:56px;border-radius:999px;border:1px solid rgba(255,255,255,.28);background:transparent;
-  color:#fff;font:600 17px/1 "Open Sans",sans-serif}
-.btn-holdcta:hover{background:rgba(255,255,255,.1)}
-
-/* -------------------------------------------------------- launch veil -- */
-#veil{
-  position:fixed;inset:0;background:var(--ink);display:flex;flex-direction:column;
-  align-items:center;justify-content:center;z-index:90;
-  animation:ox-veil .65s cubic-bezier(.4,0,1,1) 2.05s both;
-}
-#veil.off{display:none}
-.veil-mark{position:relative;width:132px;height:132px;display:flex;align-items:center;justify-content:center}
-.veil-sheen{position:absolute;width:132px;height:132px;border-radius:999px;
-  border:1px solid rgba(255,255,255,.5);animation:ox-sheen 2.4s var(--ease) .55s infinite}
-.veil-mark svg{position:relative}
-.veil-mark .logo-ring{animation:ox-draw .95s var(--ease) both}
-.veil-mark .logo-star{animation:ox-fade .5s var(--ease) .62s both}
-.veil-word{font:700 21px/1 "Open Sans",sans-serif;color:#fff;margin-top:34px;
-  animation:ox-track .9s var(--ease) .68s both}
-.veil-sub{font:400 13.5px/1 "Open Sans",sans-serif;color:rgba(255,255,255,.55);letter-spacing:.05em;
-  margin-top:14px;animation:ox-fade .7s ease 1.15s both}
-
-/* -------------------------------------------------------- diagnostics -- */
-/* Not in the ONYX design. It holds the wallet console and the raw commands
-   the consumer screens have no room for; a long press on the wordmark opens
-   it. Styled from the same nine colours so it does not look bolted on. */
-#diag{position:fixed;inset:0;z-index:85;display:none}
-#diag.on{display:block}
-.diag-scrim{position:absolute;inset:0;background:rgba(11,11,11,.45)}
-.diag-sheet{
-  /* Centred with auto margins, not translateX: ox-rise animates transform and
-     would overwrite it, leaving the sheet half a screen to the right. */
-  position:absolute;left:0;right:0;bottom:0;margin:0 auto;width:100%;max-width:520px;
-  max-height:88vh;display:flex;flex-direction:column;
-  background:var(--paper);border-radius:26px 26px 0 0;
-  padding:10px 20px var(--pad-bot);animation:ox-rise .3s var(--ease) both;
-}
-.diag-grab{width:38px;height:4px;border-radius:999px;background:var(--rule);margin:0 auto 14px}
-.diag-head{display:flex;align-items:center;gap:10px;margin-bottom:14px}
-#log{
-  flex:1;min-height:180px;overflow-y:auto;background:var(--wash);border-radius:18px;
-  padding:12px 14px;font:400 11.5px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace;
-  white-space:pre-wrap;word-break:break-word;
-}
-#log .t{color:var(--chev)}
-#log .rx{color:var(--body)}
-#log .tx{color:var(--ink);font-weight:600}
-#log .ev{color:var(--ink)}
-#log .er{color:var(--ink);text-decoration:underline;text-underline-offset:2px}
-.diag-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
-.diag-btns .btn{flex:1 1 auto;min-width:92px;min-height:44px;border-radius:999px;
-  border:1px solid var(--edge);background:var(--paper);color:var(--ink);
-  font:600 14px/1 "Open Sans",sans-serif}
-.diag-btns .btn:hover{background:var(--wash)}
-</style>
+<link rel="stylesheet" href="styles.css">
+<script type="module" src="js/app.js"></script>
 </head>
 <body>
+
+<!-- ============================================================ ICONS == -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-logo" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" stroke-width="8"/><path d="M50 25C52 42 58 48 75 50 58 52 52 58 50 75 48 58 42 52 25 50 42 48 48 42 50 25Z" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-bt" viewBox="0 0 24 24"><path d="M8 7.5 16 16.5 12 20V4l4 3.5L8 16.5"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M12 3.5A5.5 5.5 0 0 0 6.5 9c0 4.2-1.5 5.5-1.5 5.5h14S17.5 13.2 17.5 9A5.5 5.5 0 0 0 12 3.5Z"/><path d="M10.2 17.5a2 2 0 0 0 3.6 0"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="3"/><path d="M8.2 10.5V8a3.8 3.8 0 0 1 7.6 0v2.5"/></symbol>
+  <symbol id="i-lock-open" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="3"/><path d="M8.2 10.5V8a3.8 3.8 0 0 1 7.6 0"/></symbol>
+  <symbol id="i-finger" viewBox="0 0 24 24"><path d="M12 20.5c-1.9 0-3.4-1.5-3.4-3.4V9.9a3.4 3.4 0 0 1 6.8 0v6.2"/><path d="M12 16.8V10.2"/><path d="M5.6 8.4a7.7 7.7 0 0 1 12.8 0"/></symbol>
+  <symbol id="i-print" viewBox="0 0 24 24"><path d="M12 21.4c-2.1 0-3.8-1.7-3.8-3.8V9.4a3.8 3.8 0 0 1 7.6 0v7.2"/><path d="M12 17.6V9.8"/><path d="M4.9 7.6a8.4 8.4 0 0 1 14.2 0"/><path d="M6.6 11.2a6 6 0 0 1 10.8 0"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9.5 5.5 16 12l-6.5 6.5"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M14.5 5.5 8 12l6.5 6.5"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 8h11M19.5 8h.5M4 16h4M12 16h8"/><circle cx="17" cy="8" r="2.2"/><circle cx="10" cy="16" r="2.2"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s6-5.4 6-9.7A6 6 0 0 0 6 11.3C6 15.6 12 21 12 21Z"/><circle cx="12" cy="11" r="2.2"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7.6V12l3.4 2"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8.2" stroke-dasharray="2.5 3"/></symbol>
+  <symbol id="i-out" viewBox="0 0 24 24"><path d="M8 16 16.5 7.5M9.5 7.5h7v7"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M19.4 12a7.4 7.4 0 1 1-2.6-5.6"/><path d="M19.4 4.4V7.2h-2.8"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 6v12M6 12h12"/></symbol>
+  <symbol id="i-key" viewBox="0 0 24 24"><circle cx="9.5" cy="12" r="3.4"/><path d="M12.9 12H20M17.2 12v3.2"/></symbol>
+  <symbol id="i-leash" viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="12" r="2.6"/><path d="M9.2 12h5.6" stroke-dasharray="2 2.6"/></symbol>
+  <symbol id="i-pulse" viewBox="0 0 24 24"><path d="M3.5 12h3l2.2-5.4 3.2 10.8 2.2-5.4h6.4"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2"/><path d="M12 11.2v5.4M12 8.1v.15"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M5.5 8h13M9.6 8V6.2h4.8V8M7.6 8l.8 11h7.2l.8-11"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="2.6"/><path d="M11 18h2"/></symbol>
+  <symbol id="i-terminal" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="3"/><path d="M7.5 10l2.5 2-2.5 2M12 15h4"/></symbol>
+  <symbol id="i-chip" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M10 4v3M14 4v3M10 17v3M14 17v3M4 10h3M4 14h3M17 10h3M17 14h3"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V6M6.5 11.5 12 6l5.5 5.5"/></symbol>
+  <symbol id="i-shake" viewBox="0 0 24 24"><rect x="8" y="5" width="8" height="14" rx="2"/><path d="M4.5 9v6M19.5 9v6M2 11v2M22 11v2"/></symbol>
+  <symbol id="i-away" viewBox="0 0 24 24"><rect x="3.5" y="6" width="7" height="12" rx="1.8"/><path d="M14 12h7M18 8.5 21.5 12 18 15.5"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4.2 20.8 19H3.2Z"/><path d="M12 10v4.2M12 16.8v.2"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3.5 19 6v5.5c0 4.2-3 7.6-7 9-4-1.4-7-4.8-7-9V6Z"/><path d="M9 12l2.2 2.2L15.5 10"/></symbol>
+  <symbol id="i-drop" viewBox="0 0 24 24"><path d="M12 4s5.5 6 5.5 10a5.5 5.5 0 0 1-11 0C6.5 10 12 4 12 4Z"/></symbol>
+  <symbol id="i-unlink" viewBox="0 0 24 24"><path d="M9.5 14.5 7.3 16.7a3 3 0 0 1-4.2-4.2l2.2-2.2M14.5 9.5l2.2-2.2a3 3 0 0 1 4.2 4.2l-2.2 2.2M4 4l16 16"/></symbol>
+</svg>
+
+<div class="ribbon" id="ribbon" hidden>
+  <i class="live" aria-hidden="true"></i>
+  <span class="long">Demo wallet &middot; the real firmware, running in your browser</span>
+  <span class="short">Demo &middot; real firmware, in your browser</span>
+  <button type="button" id="b-exitdemo">Leave demo</button>
+</div>
+
 <div id="app">
 
 <!-- ============================================================ HOME == -->
-<section class="screen on" id="s-home">
-  <div class="topbar">
-    <button class="brandwrap" id="wordmark" title="Hold for diagnostics">
-      <svg width="26" height="26" viewBox="0 0 100 100" fill="none" style="flex:none">
-        <circle cx="50" cy="50" r="42" stroke="#0B0B0B" stroke-width="8"></circle>
-        <path d="M50 25 C52 42, 58 48, 75 50 C58 52, 52 58, 50 75 C48 58, 42 52, 25 50 C42 48, 48 42, 50 25Z" fill="#0B0B0B"></path>
-      </svg>
-      <div class="brand">ONYX</div>
+<section class="screen on" id="s-home" aria-labelledby="heroTitle">
+  <header class="topbar">
+    <button type="button" class="brand" id="wordmark" aria-label="ONYX. Press and hold for the wallet console.">
+      <svg aria-hidden="true"><use href="#i-logo"/></svg><b>ONYX</b>
     </button>
-    <button class="linkpill" id="linkpill">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" id="linkicon" stroke="#7A7A7A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7.5 16 16.5 12 20V4l4 3.5L8 16.5"></path></svg>
-      <span id="linklabel">Out of range</span>
+    <button type="button" class="pill" id="pill" data-conn="none">
+      <i class="dot" aria-hidden="true"></i><span id="pillLabel">Not paired</span>
     </button>
+  </header>
+
+  <div class="notice" id="n-unsupported" hidden>
+    <div class="label">No Bluetooth here</div>
+    <h3>This browser cannot reach a wallet</h3>
+    <p>Web Bluetooth runs in Chrome, Edge, Opera and Samsung Internet, on Android and on desktop. Safari and Firefox do not have it on any device. The demo wallet below works everywhere.</p>
+  </div>
+  <div class="notice" id="n-insecure" hidden>
+    <div class="label">Needs HTTPS</div>
+    <h3>Open this over a secure link</h3>
+    <p>Web Bluetooth only runs on a secure origin: GitHub Pages, any HTTPS host, or localhost.</p>
   </div>
 
-  <!-- Not in the design: without these a Safari user sees a dead app. -->
-  <div class="darkcard" id="b-unsupported" hidden>
-    <div class="t-hero-label">NO BLUETOOTH HERE</div>
-    <div class="darkcard-title">This browser cannot reach the wallet</div>
-    <p style="margin-bottom:0">Web Bluetooth runs in Chrome, Edge, Opera and Samsung Internet, on Android and on desktop. Safari has never supported it on any version, so an iPhone needs a native app or the free nRF Connect instead.</p>
-  </div>
-  <div class="darkcard" id="b-insecure" hidden>
-    <div class="t-hero-label">NEEDS HTTPS</div>
-    <div class="darkcard-title">Open this over a secure link</div>
-    <p style="margin-bottom:0">Web Bluetooth only runs on a secure origin. Host this file on GitHub Pages, which is free and gives you HTTPS, or open it from localhost.</p>
+  <div class="slab alarm" id="alarmCard" role="alert" hidden>
+    <div class="label">Alarm</div>
+    <h2 class="h-card">Something moved your wallet</h2>
+    <p class="dim">It locked itself and it is beeping. Touch the sensor on the wallet, or stop it from here.</p>
+    <button type="button" class="btn btn-solid btn-wide" id="b-alarmstop">Hold to stop the alarm</button>
   </div>
 
-  <div class="darkcard" id="alarmcard" hidden>
-    <div class="t-hero-label">ALARM</div>
-    <div class="darkcard-title">Something moved your wallet</div>
-    <p>It locked itself and it is beeping. Touch the sensor on the wallet, or stop it from here.</p>
-    <button type="button" class="btn btn-wide-light" id="b-alarmstop">Hold to stop the alarm</button>
-  </div>
+  <div class="slab hero" id="hero" data-near="0">
+    <div class="label" id="heroLabel">Not paired yet</div>
+    <h1 class="h-hero" id="heroTitle">Meet your wallet</h1>
+    <p class="dim" id="heroSub">Pair the wallet in your pocket, or try a simulated one that runs the real firmware right here.</p>
 
-  <div class="hero">
-    <div class="t-hero-label" id="heroLabel">LAST SEEN</div>
-    <div class="t-hero-title" id="heroTitle">Not paired yet</div>
-    <div class="t-hero-sub" id="heroSub">Tap the badge at the top to find your wallet over Bluetooth.</div>
-
-    <div class="hero-map">
-      <svg width="100%" height="132" viewBox="0 0 358 132" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="1" preserveAspectRatio="none">
-        <path d="M-10 34h380M-10 92h380M64 -10v152M182 -10v152M268 -10v152"></path>
-        <path d="M-10 118 120 -10M238 142 358 22" stroke="rgba(255,255,255,.1)"></path>
-        <rect x="80" y="44" width="86" height="42" stroke="rgba(255,255,255,.1)"></rect>
-        <rect x="196" y="6" width="58" height="24" stroke="rgba(255,255,255,.1)"></rect>
+    <div class="hero-map" aria-hidden="true">
+      <svg class="art" viewBox="0 0 358 132" preserveAspectRatio="none" fill="none" stroke="currentColor" stroke-width="1">
+        <path d="M-10 34h380M-10 92h380M64 -10v152M182 -10v152M268 -10v152" stroke-opacity=".16"/>
+        <path d="M-10 118 120 -10M238 142 358 22" stroke-opacity=".1"/>
+        <rect x="80" y="44" width="86" height="42" stroke-opacity=".1"/>
+        <rect x="196" y="6" width="58" height="24" stroke-opacity=".1"/>
       </svg>
-      <div class="hero-halo"></div>
-      <div class="hero-dot"></div>
-      <div class="hero-fade"></div>
+      <i class="halo"></i><i class="wave"></i><i class="wave"></i><i class="dot"></i><i class="fade"></i>
     </div>
 
-    <div class="hero-btns">
+    <div class="hero-btns" id="heroIdle">
+      <button type="button" class="btn btn-solid" id="b-pair"><svg class="i" aria-hidden="true"><use href="#i-bt"/></svg><span id="b-pairLabel">Pair a wallet</span></button>
+      <button type="button" class="btn btn-ghost" id="b-demo">Try the demo</button>
+    </div>
+    <div class="hero-btns" id="heroLinked" hidden>
       <button type="button" class="btn btn-ghost" id="b-seemap">See the map</button>
-      <button type="button" class="btn btn-onlight" id="b-ring">
-        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5A5.5 5.5 0 0 0 6.5 9c0 4.2-1.5 5.5-1.5 5.5h14S17.5 13.2 17.5 9A5.5 5.5 0 0 0 12 3.5Z"></path><path d="M10.2 17.5a2 2 0 0 0 3.6 0"></path></svg>
-        <span id="ringLabel">Ring it</span>
-      </button>
+      <button type="button" class="btn btn-solid" id="b-ring"><svg class="i" aria-hidden="true"><use href="#i-bell"/></svg><span id="ringLabel">Ring it</span></button>
     </div>
   </div>
 
-  <div class="card homecard">
+  <div class="card homecard" id="statusCard" hidden>
     <div class="row">
-      <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="3"></rect><path id="lockShackle" d="M8.2 10.5V8a3.8 3.8 0 0 1 7.6 0v2.5"></path></svg>
-      <span class="label">Wallet</span>
-      <span class="t-rowval" id="latchWord">&mdash;</span>
+      <svg class="i" aria-hidden="true"><use id="latchIcon" href="#i-lock"/></svg>
+      <span class="grow t-row">Wallet</span>
+      <span class="t-val" id="latchWord">&mdash;</span>
     </div>
     <div class="row">
-      <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="16" height="9" rx="3"></rect><path d="M21.2 11v3"></path><rect id="battFill" x="5.6" y="10.6" width="9" height="3.8" rx="1.2" fill="#0B0B0B" stroke="none"></rect></svg>
-      <span class="label">Battery</span>
-      <span class="t-rowval num" id="battWord">&mdash;</span>
+      <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="8" width="16" height="9" rx="3"/><path d="M21.2 11v3"/><rect id="battFill" x="5.6" y="10.6" width="0" height="3.8" rx="1.2" fill="currentColor" stroke="none"/></svg>
+      <span class="grow t-row">Battery</span>
+      <span class="t-val num" id="battWord">&mdash;</span>
     </div>
-    <button type="button" class="rowbtn" id="b-goprints">
-      <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5c-1.9 0-3.4-1.5-3.4-3.4V9.9a3.4 3.4 0 0 1 6.8 0v6.2"></path><path d="M12 16.8V10.2"></path><path d="M5.6 8.4a7.7 7.7 0 0 1 12.8 0"></path></svg>
-      <span class="label">Fingers that can open it</span>
-      <span class="t-rowval num" style="flex:none" id="printCount">&mdash;</span>
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7A7A7A" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 16 12l-6.5 6.5"></path></svg>
+    <button type="button" class="rowbtn" id="b-gofingers">
+      <svg class="i" aria-hidden="true"><use href="#i-finger"/></svg>
+      <span class="grow t-row">Fingers that can open it</span>
+      <span class="t-val num" id="fingerCount">&mdash;</span>
+      <svg class="i chev" aria-hidden="true"><use href="#i-chev"/></svg>
     </button>
   </div>
 
-  <div class="stack homeactions">
-    <button type="button" class="btn btn-dark" id="b-holdopen">
-      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="3"></rect><path d="M8.2 10.5V8a3.8 3.8 0 0 1 7.6 0"></path></svg>
-      Hold to open
-    </button>
-    <button type="button" class="btn btn-light" id="b-gosettings">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h11M19.5 8h.5M4 16h4M12 16h8"></path><circle cx="17" cy="8" r="2.2"></circle><circle cx="10" cy="16" r="2.2"></circle></svg>
-      Settings
-    </button>
+  <div class="stack actions" id="homeActions" hidden>
+    <button type="button" class="btn btn-primary" id="b-holdopen"><svg class="i" aria-hidden="true"><use href="#i-lock-open"/></svg><span id="openLabel">Hold to open</span></button>
+    <button type="button" class="btn btn-light" id="b-gosettings"><svg class="i" aria-hidden="true"><use href="#i-sliders"/></svg>Settings</button>
+  </div>
+</section>
+
+<!-- ============================================================ PAIR == -->
+<section class="screen tall" id="s-pair" aria-labelledby="pairTitle">
+  <div class="crumb" style="padding:0 0 4px;margin-left:-8px">
+    <button type="button" class="btn btn-back" id="b-pairback" aria-label="Back"><svg class="i" aria-hidden="true"><use href="#i-back"/></svg></button>
+  </div>
+  <div class="center">
+    <div class="pad" id="pairPad" data-mode="busy">
+      <i class="edge"></i><i class="fill"></i><i class="wave"></i><i class="wave"></i>
+      <svg class="ring" viewBox="0 0 196 196" aria-hidden="true"><circle class="track" cx="98" cy="98" r="96"/><circle class="arc" id="pairArc" cx="98" cy="98" r="96" stroke-dasharray="603.2" stroke-dashoffset="603.2"/></svg>
+      <svg class="i glyph" aria-hidden="true"><use id="pairGlyph" href="#i-shield"/></svg>
+    </div>
+    <h2 id="pairTitle">Saying hello</h2>
+    <p id="pairBody">Checking who this wallet belongs to.</p>
+  </div>
+  <div class="stack">
+    <button type="button" class="btn btn-primary" id="pairCta" hidden>Done</button>
+    <button type="button" class="btn btn-alt" id="pairAlt">Cancel</button>
   </div>
 </section>
 
 <!-- ============================================================ FIND == -->
-<section class="screen" id="s-find">
-  <div class="crumb">
-    <button type="button" class="btn btn-back nav-home">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 8 12l6.5 6.5"></path></svg>
-    </button>
-    <span class="t-crumb">Where it was</span>
-  </div>
-
-  <div style="position:relative;height:300px;background:#0B0B0B;overflow:hidden;animation:ox-fade .6s ease both">
-    <svg width="100%" height="300" viewBox="0 0 402 300" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="1" preserveAspectRatio="none">
-      <path d="M-10 62h420M-10 152h420M-10 236h420M58 -10v320M158 -10v320M262 -10v320M340 -10v320"></path>
-      <path d="M-10 268 140 -10M260 320 420 130" stroke="rgba(255,255,255,.09)" stroke-width="10"></path>
-      <rect x="72" y="76" width="72" height="62" stroke="rgba(255,255,255,.09)"></rect>
-      <rect x="176" y="170" width="70" height="52" stroke="rgba(255,255,255,.09)"></rect>
-      <rect x="278" y="76" width="50" height="62" stroke="rgba(255,255,255,.09)"></rect>
+<section class="screen" id="s-find" aria-labelledby="fixAgo">
+  <div class="crumb"><button type="button" class="btn btn-back nav-home" aria-label="Back"><svg class="i" aria-hidden="true"><use href="#i-back"/></svg></button><b>Where it was</b></div>
+  <div class="map" aria-hidden="true">
+    <svg class="art" viewBox="0 0 402 300" preserveAspectRatio="none" fill="none" stroke="currentColor" stroke-width="1">
+      <path d="M-10 62h420M-10 152h420M-10 236h420M58 -10v320M158 -10v320M262 -10v320M340 -10v320" stroke-opacity=".15"/>
+      <path d="M-10 268 140 -10M260 320 420 130" stroke-opacity=".09" stroke-width="10"/>
+      <rect x="72" y="76" width="72" height="62" stroke-opacity=".09"/><rect x="176" y="170" width="70" height="52" stroke-opacity=".09"/><rect x="278" y="76" width="50" height="62" stroke-opacity=".09"/>
     </svg>
-    <div style="position:absolute;left:50%;top:152px;transform:translate(-50%,-50%);width:150px;height:150px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2)"></div>
-    <div style="position:absolute;left:50%;top:152px;transform:translate(-50%,-50%);width:17px;height:17px;border-radius:999px;background:#fff;box-shadow:0 0 0 5px #0B0B0B"></div>
+    <i class="zone"></i><i class="dot"></i>
   </div>
-
-  <div class="page find">
-    <div style="font:600 26px/1.25 'Open Sans',sans-serif;letter-spacing:-.02em" id="fixAgo">No fix recorded yet</div>
-    <p class="t-lede">This is where <strong style="font-weight:600">your phone</strong> was standing when it lost the wallet. The wallet has no GPS of its own, so this is where you lost it, not where it is now.</p>
-
-    <div class="card" style="margin:22px 0 0">
-      <div class="row detail">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s6-5.4 6-9.7A6 6 0 0 0 6 11.3C6 15.6 12 21 12 21Z"></path><circle cx="12" cy="11" r="2.2"></circle></svg>
-        <span class="label dim">Position</span>
-        <span class="t-detail num" id="fixPos">&mdash;</span>
-      </div>
-      <div class="row detail">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"></circle><path d="M12 7.6V12l3.4 2"></path></svg>
-        <span class="label dim">Recorded</span>
-        <span class="t-detail" id="fixWhen">&mdash;</span>
-      </div>
-      <div class="row detail">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><circle cx="12" cy="12" r="8.2" stroke-dasharray="2.5 3"></circle></svg>
-        <span class="label dim">How exact</span>
-        <span class="t-detail" id="fixAcc">&mdash;</span>
-      </div>
+  <div class="page" style="padding-top:26px">
+    <h1 class="h-card" style="margin:0" id="fixAgo">No position recorded yet</h1>
+    <p class="lede" id="fixLede">This is where <b>your phone</b> was standing when it lost the wallet. The wallet has no GPS of its own, so this is where you lost it, not where it is now.</p>
+    <div class="card" style="margin-top:22px">
+      <div class="row"><svg class="i" aria-hidden="true"><use href="#i-pin"/></svg><span class="grow t-row">Position</span><span class="t-dim num" id="fixPos">&mdash;</span></div>
+      <div class="row"><svg class="i" aria-hidden="true"><use href="#i-clock"/></svg><span class="grow t-row">Recorded</span><span class="t-dim" id="fixWhen">&mdash;</span></div>
+      <div class="row"><svg class="i" aria-hidden="true"><use href="#i-target"/></svg><span class="grow t-row">How exact</span><span class="t-dim" id="fixAcc">&mdash;</span></div>
     </div>
-
     <div class="stack" style="margin-top:22px">
-      <button type="button" class="btn btn-dark" id="b-maps">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16 16.5 7.5M9.5 7.5h7v7"></path></svg>
-        Open in Maps
-      </button>
-      <button type="button" class="btn btn-light" id="b-updatefix">
-        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19.4 12a7.4 7.4 0 1 1-2.6-5.6"></path><path d="M19.4 4.4V7.2h-2.8"></path></svg>
-        <span id="fixBtnLabel">Record where I am now</span>
-      </button>
+      <button type="button" class="btn btn-primary" id="b-maps"><svg class="i" aria-hidden="true"><use href="#i-out"/></svg>Open in Maps</button>
+      <button type="button" class="btn btn-light" id="b-updatefix"><svg class="i" aria-hidden="true"><use href="#i-refresh"/></svg><span id="fixBtnLabel">Record where I am now</span></button>
     </div>
+    <p class="hint" id="fixHint" hidden><svg class="i" aria-hidden="true"><use href="#i-info"/></svg><span>Turn on <b>Remember where I lose it</b> in Settings and the app records a position every time the wallet drops out of range.</span></p>
   </div>
 </section>
 
-<!-- ========================================================== PRINTS == -->
-<section class="screen" id="s-prints">
-  <div class="crumb">
-    <button type="button" class="btn btn-back nav-home">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 8 12l6.5 6.5"></path></svg>
-    </button>
-    <span class="t-crumb">Fingers</span>
-  </div>
-
+<!-- ========================================================= FINGERS == -->
+<section class="screen" id="s-fingers" aria-labelledby="fingersTitle">
+  <div class="crumb"><button type="button" class="btn btn-back nav-home" aria-label="Back"><svg class="i" aria-hidden="true"><use href="#i-back"/></svg></button><b>Fingers</b></div>
   <div class="page">
-    <div class="t-page">Fingers that can open it</div>
-    <p class="t-lede">Each finger is saved on the wallet itself, never on your phone. You can add up to ten.</p>
-
-    <div class="card tight">
-      <div id="printList"></div>
+    <h1 class="h-page" id="fingersTitle">Fingers that can open it</h1>
+    <p class="lede">Each finger is saved on the wallet itself, never on your phone. Names live on this phone. You can add up to ten.</p>
+    <div class="card" style="margin-top:24px">
+      <div id="fingerList"></div>
       <button type="button" class="rowbtn tall" id="b-goenroll">
-        <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="1.8" stroke-linecap="round"><path d="M12 6v12M6 12h12"></path></svg>
-        <span class="label strong">Add a finger</span>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7A7A7A" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 16 12l-6.5 6.5"></path></svg>
+        <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg>
+        <span class="grow t-row" style="font-weight:600">Add a finger</span>
+        <svg class="i chev" aria-hidden="true"><use href="#i-chev"/></svg>
       </button>
     </div>
-
-    <button type="button" class="btn btn-quiet" id="b-removeall">Remove every finger</button>
+    <p class="hint" id="fingersOffline" hidden><svg class="i" aria-hidden="true"><use href="#i-bt"/></svg><span>Connect to the wallet to add or remove fingers.</span></p>
+    <button type="button" class="btn btn-quiet btn-wide" style="margin-top:22px" id="b-removeall">Remove every finger</button>
   </div>
 </section>
 
 <!-- ========================================================== ENROLL == -->
-<section class="screen tall" id="s-enroll">
-  <div class="dots">
-    <div class="bar on" id="dot1"></div>
-    <div class="bar" id="dot2"></div>
-  </div>
-
-  <div class="enroll-mid">
-    <div class="pad">
-      <div class="pad-edge"></div>
-      <div class="pad-fill" id="padFill"></div>
-      <svg width="86" height="86" viewBox="0 0 24 24" fill="none" id="padGlyph" stroke="#0B0B0B" stroke-width="1.15" stroke-linecap="round">
-        <path d="M12 21.4c-2.1 0-3.8-1.7-3.8-3.8V9.4a3.8 3.8 0 0 1 7.6 0v7.2"></path>
-        <path d="M12 17.6V9.8"></path>
-        <path d="M4.9 7.6a8.4 8.4 0 0 1 14.2 0"></path>
-        <path d="M6.6 11.2a6 6 0 0 1 10.8 0"></path>
-      </svg>
+<section class="screen tall" id="s-enroll" aria-labelledby="enrollTitle">
+  <div class="bars" aria-hidden="true"><i id="bar1"></i><i id="bar2"></i></div>
+  <div class="center" aria-live="polite">
+    <div class="pad" id="enrollPad" data-mode="listen">
+      <i class="edge"></i><i class="fill"></i><i class="wave"></i><i class="wave"></i>
+      <svg class="i glyph" aria-hidden="true"><use id="enrollGlyph" href="#i-print"/></svg>
     </div>
-    <div class="enroll-title" id="enrollTitle">Rest your finger on the sensor</div>
-    <p class="enroll-body" id="enrollBody">Cover the small silver circle on the front of the wallet and hold still.</p>
+    <h2 id="enrollTitle">Rest your finger on the sensor</h2>
+    <p id="enrollBody">Cover the small silver circle on the front of the wallet and hold still.</p>
   </div>
-
   <div class="stack">
-    <button type="button" class="btn btn-dark" id="enrollCta">Waiting for the sensor</button>
+    <button type="button" class="btn btn-primary" id="enrollCta" disabled>Waiting for the sensor</button>
     <button type="button" class="btn btn-alt" id="enrollAlt">Cancel</button>
   </div>
 </section>
 
 <!-- ======================================================== SETTINGS == -->
-<section class="screen" id="s-settings">
-  <div class="crumb">
-    <button type="button" class="btn btn-back nav-home">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 8 12l6.5 6.5"></path></svg>
-    </button>
-    <span class="t-crumb">Settings</span>
-  </div>
-
+<section class="screen" id="s-settings" aria-labelledby="settingsTitle">
+  <div class="crumb"><button type="button" class="btn btn-back nav-home" aria-label="Back"><svg class="i" aria-hidden="true"><use href="#i-back"/></svg></button><b>Settings</b></div>
   <div class="page">
-    <div class="t-page">How it behaves</div>
+    <h1 class="h-page" id="settingsTitle">How it behaves</h1>
+    <p class="hint" id="settingsOffline" hidden><svg class="i" aria-hidden="true"><use href="#i-bt"/></svg><span>The wallet keeps these itself. Connect to it to change them.</span></p>
 
-    <div class="t-group">OPENING &amp; CLOSING</div>
+    <div class="group">Opening &amp; closing</div>
     <div class="card">
-      <button type="button" class="rowbtn tall" data-choice="relock">
-        <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"></circle><path d="M12 7.6V12l3.4 2"></path></svg>
-        <span class="label">Lock itself again</span>
-        <span class="t-detail t-dim" id="relockWord">&mdash;</span>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7A7A7A" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 16 12l-6.5 6.5"></path></svg>
-      </button>
-      <button type="button" class="rowbtn tall" data-choice="tries">
-        <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9.5" cy="12" r="3.4"></circle><path d="M12.9 12H20M17.2 12v3.2"></path></svg>
-        <span class="label">Wrong-finger tries</span>
-        <span class="t-detail t-dim" id="triesWord">&mdash;</span>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7A7A7A" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 16 12l-6.5 6.5"></path></svg>
-      </button>
+      <button type="button" class="rowbtn tall" data-choice="relock"><svg class="i" aria-hidden="true"><use href="#i-clock"/></svg><span class="grow t-row">Lock itself again</span><span class="t-dim" data-word="relock">&mdash;</span><svg class="i chev" aria-hidden="true"><use href="#i-chev"/></svg></button>
+      <button type="button" class="rowbtn tall" data-choice="tries"><svg class="i" aria-hidden="true"><use href="#i-key"/></svg><span class="grow t-row">Wrong-finger tries</span><span class="t-dim" data-word="tries">&mdash;</span><svg class="i chev" aria-hidden="true"><use href="#i-chev"/></svg></button>
     </div>
 
-    <div class="t-group">KEEPING IT SAFE</div>
+    <div class="group">Keeping it safe</div>
     <div class="card">
-      <button type="button" class="rowbtn tall" data-choice="leash">
-        <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="12" r="2.6"></circle><circle cx="18" cy="12" r="2.6"></circle><path d="M9.2 12h5.6" stroke-dasharray="2 2.6"></path></svg>
-        <span class="label">Tell me if I walk off</span>
-        <span class="t-detail t-dim" id="leashWord">&mdash;</span>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7A7A7A" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 16 12l-6.5 6.5"></path></svg>
-      </button>
-      <button type="button" class="rowbtn tall" data-choice="nudge">
-        <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12h3l2.2-5.4 3.2 10.8 2.2-5.4h6.4"></path></svg>
-        <span class="label">Alarm if grabbed</span>
-        <span class="t-detail t-dim" id="nudgeWord">&mdash;</span>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7A7A7A" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 16 12l-6.5 6.5"></path></svg>
-      </button>
+      <button type="button" class="rowbtn tall" data-choice="leash"><svg class="i" aria-hidden="true"><use href="#i-leash"/></svg><span class="grow t-row">Tell me if I walk off</span><span class="t-dim" data-word="leash">&mdash;</span><svg class="i chev" aria-hidden="true"><use href="#i-chev"/></svg></button>
+      <button type="button" class="rowbtn tall" data-choice="nudge"><svg class="i" aria-hidden="true"><use href="#i-pulse"/></svg><span class="grow t-row">Alarm if grabbed</span><span class="t-dim" data-word="nudge">&mdash;</span><svg class="i chev" aria-hidden="true"><use href="#i-chev"/></svg></button>
     </div>
 
-    <div class="t-group">THIS WALLET</div>
+    <div class="group">This phone</div>
     <div class="card">
       <div class="row tall">
-        <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.2"></circle><path d="M12 11.2v5.4M12 8.1v.15"></path></svg>
-        <span class="label">Name</span>
-        <span class="t-detail t-dim" id="walletName">Not paired</span>
+        <svg class="i" aria-hidden="true"><use href="#i-pin"/></svg>
+        <span class="grow"><span class="t-row" id="geoLabel">Remember where I lose it</span><span class="t-sub" style="display:block">Asks for your location only when the wallet drops out of range.</span></span>
+        <button type="button" class="switch" role="switch" id="b-geo" aria-checked="false" aria-labelledby="geoLabel"></button>
       </div>
-      <button type="button" class="rowbtn tall" id="b-forget">
-        <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 8h13M9.6 8V6.2h4.8V8M7.6 8l.8 11h7.2l.8-11"></path></svg>
-        <span class="label">Forget this wallet</span>
-      </button>
+      <button type="button" class="rowbtn tall" id="b-goconsole"><svg class="i" aria-hidden="true"><use href="#i-terminal"/></svg><span class="grow t-row">Wallet console</span><svg class="i chev" aria-hidden="true"><use href="#i-chev"/></svg></button>
     </div>
+
+    <div class="group">This wallet</div>
+    <div class="card">
+      <div class="row tall"><svg class="i" aria-hidden="true"><use href="#i-info"/></svg><span class="grow t-row">Name</span><span class="t-dim" id="walletName">Not paired</span></div>
+      <div class="row tall"><svg class="i" aria-hidden="true"><use href="#i-chip"/></svg><span class="grow t-row">Firmware</span><span class="t-dim" id="walletFw">&mdash;</span></div>
+      <div class="row tall"><svg class="i" aria-hidden="true"><use href="#i-phone"/></svg><span class="grow t-row">Phones paired</span><span class="t-dim num" id="walletPhones">&mdash;</span></div>
+      <button type="button" class="rowbtn tall" id="b-forget"><svg class="i" aria-hidden="true"><use href="#i-trash"/></svg><span class="grow t-row">Forget it on this phone</span></button>
+      <button type="button" class="rowbtn tall" id="b-unpair"><svg class="i" aria-hidden="true"><use href="#i-unlink"/></svg><span class="grow t-row">Unpair every phone</span></button>
+    </div>
+    <p class="foot">ONYX talks to the wallet over Bluetooth, and only after the wallet has checked this phone's key. Nothing about your fingers ever leaves the wallet.</p>
   </div>
 </section>
 
 <!-- ========================================================== CHOICE == -->
-<section class="screen" id="s-choice">
-  <div class="crumb">
-    <button type="button" class="btn btn-back" id="b-backsettings">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 8 12l6.5 6.5"></path></svg>
-    </button>
-    <span class="t-crumb">Settings</span>
-  </div>
-
+<section class="screen" id="s-choice" aria-labelledby="choiceTitle">
+  <div class="crumb"><button type="button" class="btn btn-back" id="b-backsettings" aria-label="Back to settings"><svg class="i" aria-hidden="true"><use href="#i-back"/></svg></button><b>Settings</b></div>
   <div class="page">
-    <div class="t-page" id="choiceTitle"></div>
-    <p class="t-lede" id="choiceBody"></p>
-    <div class="card" style="margin:26px 0 0" id="choiceList"></div>
-    <p class="t-foot" id="choiceFoot"></p>
+    <h1 class="h-page" id="choiceTitle"></h1>
+    <p class="lede" id="choiceBody"></p>
+    <div class="card" style="margin-top:26px" id="choiceList" role="radiogroup" aria-labelledby="choiceTitle"></div>
+    <p class="foot" id="choiceFoot"></p>
+  </div>
+</section>
+
+<!-- ========================================================= CONSOLE == -->
+<section class="screen tall" id="s-console" aria-labelledby="consoleTitle" style="padding-left:0;padding-right:0">
+  <div class="crumb"><button type="button" class="btn btn-back" id="b-consoleback" aria-label="Back"><svg class="i" aria-hidden="true"><use href="#i-back"/></svg></button><b id="consoleTitle">Wallet console</b></div>
+  <div style="flex:1;display:flex;flex-direction:column;padding:0 20px">
+    <div id="log" role="log" aria-live="polite"></div>
+    <form class="console-input" id="consoleForm" autocomplete="off">
+      <input id="consoleCmd" placeholder="Type a command - HELP lists them" aria-label="Command" spellcheck="false" autocapitalize="characters">
+      <button type="submit" class="btn btn-small">Send</button>
+    </form>
+    <div class="console-btns">
+      <button type="button" class="btn btn-small" data-cmd="STATUS">Status</button>
+      <button type="button" class="btn btn-small" data-cmd="GET">Settings</button>
+      <button type="button" class="btn btn-small" data-cmd="LIST">Fingers</button>
+      <button type="button" class="btn btn-small" data-cmd="LOCK">Lock</button>
+      <button type="button" class="btn btn-small" data-cmd="CLEAR">Clear</button>
+      <button type="button" class="btn btn-small" id="b-clearlog">Clear log</button>
+    </div>
   </div>
 </section>
 
 </div><!-- /#app -->
 
 <!-- ================================================== HOLD OVERLAY == -->
-<div class="overlay" id="unlockOverlay">
-  <div class="overlay-top">
-    <button type="button" class="btn btn-close" id="b-closehold">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"></path></svg>
+<div class="overlay slab" id="hold" role="dialog" aria-modal="true" aria-labelledby="holdTitle" style="border-radius:0">
+  <div class="top"><button type="button" class="btn-close" id="b-closehold" aria-label="Close"><svg class="i" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+  <div class="center" style="padding-bottom:24px">
+    <button type="button" class="holdpad" id="holdpad" data-phase="idle" aria-describedby="holdBody">
+      <svg class="ring" viewBox="0 0 236 236" aria-hidden="true"><circle class="track" cx="118" cy="118" r="112"/><circle class="arc" cx="118" cy="118" r="112"/></svg>
+      <span class="holdcore"><svg class="i" aria-hidden="true"><use id="holdGlyph" href="#i-lock"/></svg></span>
     </button>
+    <h2 id="holdTitle">Hold to open</h2>
+    <p class="dim" id="holdBody" aria-live="polite">Press and keep your finger down for a second. It will not open on a single tap.</p>
   </div>
-
-  <div class="hold-mid">
-    <div class="holdpad" id="holdpad">
-      <svg width="236" height="236" viewBox="0 0 236 236" fill="none" class="ring">
-        <circle cx="118" cy="118" r="112" stroke="rgba(255,255,255,.18)" stroke-width="2"></circle>
-        <circle id="holdArc" cx="118" cy="118" r="112" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-dasharray="703.7" stroke-dashoffset="703.7"></circle>
-      </svg>
-      <div class="holdcore" id="holdcore">
-        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" id="holdGlyph" stroke="#fff" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="3"></rect><path id="holdShackle" d="M8.2 10.5V8a3.8 3.8 0 0 1 7.6 0v2.5"></path></svg>
-      </div>
-    </div>
-
-    <div class="hold-title" id="holdTitle">Hold to open</div>
-    <p class="hold-body" id="holdBody">Press and keep your finger down for a second. It will not open on a single tap.</p>
-  </div>
-
-  <button type="button" class="btn btn-holdcta" id="b-holdcta">Not now</button>
+  <button type="button" class="btn btn-onslab" id="b-holdcta">Not now</button>
 </div>
 
-<!-- ====================================================== DIAGNOSTICS == -->
-<div id="diag">
-  <div class="diag-scrim" id="diagScrim"></div>
-  <div class="diag-sheet">
-    <div class="diag-grab"></div>
-    <div class="diag-head">
-      <span class="t-crumb" style="flex:1">Wallet console</span>
-      <button type="button" class="btn btn-remove" id="b-diagclose">Close</button>
-    </div>
-    <div id="log"></div>
-    <div class="diag-btns">
-      <button type="button" class="btn" data-cmd="STATUS">Status</button>
-      <button type="button" class="btn" data-cmd="GET">Read settings</button>
-      <button type="button" class="btn" data-cmd="LOCK">Lock</button>
-      <button type="button" class="btn" data-cmd="UNLOCK">Unlock</button>
-      <button type="button" class="btn" data-cmd="CLEAR">Clear alarm</button>
-      <button type="button" class="btn" id="b-delid">Delete by ID</button>
-      <button type="button" class="btn" id="b-clearlog">Clear log</button>
-    </div>
-  </div>
-</div>
+<div id="sheetHost"></div>
+<div id="toastHost" aria-live="polite"></div>
+<div id="benchHost"></div>
 
 <!-- ====================================================== LAUNCH VEIL == -->
-<div id="veil">
-  <div class="veil-mark">
-    <div class="veil-sheen"></div>
-    <svg width="92" height="92" viewBox="0 0 100 100" fill="none">
-      <circle class="logo-ring" cx="50" cy="50" r="42" stroke="#fff" stroke-width="8" stroke-dasharray="264" stroke-dashoffset="264"></circle>
-      <path class="logo-star" d="M50 25 C52 42, 58 48, 75 50 C58 52, 52 58, 50 75 C48 58, 42 52, 25 50 C42 48, 48 42, 50 25Z" fill="#fff"></path>
-    </svg>
+<div id="veil" aria-hidden="true">
+  <div class="mark"><i></i>
+    <svg viewBox="0 0 100 100"><circle class="ring" cx="50" cy="50" r="42"/><path class="star" d="M50 25C52 42 58 48 75 50 58 52 52 58 50 75 48 58 42 52 25 50 42 48 48 42 50 25Z"/></svg>
   </div>
-  <div class="veil-word">ONYX</div>
-  <div class="veil-sub">Your wallet, closed</div>
+  <b>ONYX</b>
+  <small>Your wallet, closed</small>
 </div>
-
-<script>
-"use strict";
-/* ====================================================================
-   ONYX - companion app for the MONO wallet.
-
-   The screens are the ONYX design; the data behind them is the real
-   wallet, reached over the Nordic UART service the firmware exposes.
-   One state object, one render() pass, the same shape the design's
-   renderVals() had.
-   ==================================================================== */
-
-// Nordic UART - what the firmware's BLEUart exposes.
-const NUS = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
-const RX  = "6e400002-b5a3-f393-e0a9-e50e24dcca9e"; // phone -> wallet
-const TX  = "6e400003-b5a3-f393-e0a9-e50e24dcca9e"; // wallet -> phone
-
-const $ = id => document.getElementById(id);
-
-/* Storage throws in some embedded/preview contexts and comes back empty in
-   private windows. The app has to work either way. */
-const mem = {};
-const store = {
-  get(k){ try { return localStorage.getItem(k); } catch(e){ return mem[k] ?? null; } },
-  set(k,v){ try { localStorage.setItem(k,v); } catch(e){ mem[k]=v; } },
-  del(k){ try { localStorage.removeItem(k); } catch(e){ delete mem[k]; } }
-};
-
-// ---------------------------------------------------------------- state --
-let device = null, rxChar = null, rxBuf = "";
-
-const S = {
-  screen: "home",       // home | find | prints | enroll | settings | choice
-  choice: null,         // relock | tries | leash | nudge
-  linked: false,
-  state: null,          // firmware state code, 0-5
-  vbat: NaN,
-  templates: 0,
-  enroll: null,         // null | 1 | 2 | 3 | {fail:"why"}
-  enrollId: null,
-  ringing: false,
-  hold: "idle",         // idle | holding | done
-  holdIntent: "unlock", // unlock | clear
-  fixJustUpdated: false,
-  cfg: { relock:6000, maxfails:5, sepwarn:20, tamper:2600 }
-};
-
-/* The wallet keeps the templates; it cannot keep their names. LIST returns a
-   count and nothing else, so the roster of {id,name,added} lives here and is
-   reconciled against that count on every STATUS. */
-function roster(){
-  try { return JSON.parse(store.get("onyx.prints") || "[]"); } catch(e){ return []; }
-}
-function setRoster(list){ store.set("onyx.prints", JSON.stringify(list)); }
-
-// ------------------------------------------------------------- settings --
-// Preset lists, exactly as the design names them.
-const RELOCK = [
-  {v:3,  label:"Right away",       short:"3 sec",  note:"Locks 3 seconds after you open it"},
-  {v:6,  label:"Normal",                           note:"Locks 6 seconds after you open it"},
-  {v:15, label:"Give me a moment", short:"15 sec", note:"Locks 15 seconds after you open it"},
-  {v:30, label:"Take your time",   short:"30 sec", note:"Locks 30 seconds after you open it"}
-];
-const TRIES = [
-  {v:3,  label:"3 tries",  note:"Strictest. Waits 30 seconds after the third wrong finger"},
-  {v:5,  label:"5 tries",  note:"A good balance for most people"},
-  {v:10, label:"10 tries", note:"Kindest to dry or cold hands"}
-];
-const LEASH = [
-  {v:0,   label:"Never",              short:"Never",  note:"No warning when you walk away"},
-  {v:20,  label:"Straight away",      short:"At once",note:"Warns after 20 seconds out of range"},
-  {v:60,  label:"After a minute",     short:"1 min",  note:"Warns once you are properly gone"},
-  {v:300, label:"After five minutes", short:"5 min",  note:"Only if you really left it behind"}
-];
-const NUDGE = [
-  {v:4000, label:"Only a real grab", short:"Real grabs",note:"Ignores pockets, bags and bumpy roads"},
-  {v:2500, label:"Normal",                             note:"A firm tug sets off the alarm"},
-  {v:1200, label:"Very sensitive",   short:"Sensitive", note:"Even a knock sets it off. Expect false alarms"}
-];
-
-const CHOICE_META = {
-  relock:{list:RELOCK, title:"Lock itself again", body:"After you open the wallet with your finger, it closes and locks on its own. Choose how long it waits.", foot:"The wallet holds this setting itself, so it works even when your phone is not nearby."},
-  tries: {list:TRIES,  title:"Wrong-finger tries", body:"If the wrong finger is used too many times in a row, the wallet stops listening for half a minute.", foot:"A wrong reading is common on dry or cold hands, so fewer tries is not always safer."},
-  leash: {list:LEASH,  title:"Tell me if I walk off", body:"When your phone goes out of Bluetooth range, the wallet gives a quiet warning beep, then a full alarm.", foot:"The wallet only does this after your phone has connected at least once."},
-  nudge: {list:NUDGE,  title:"Alarm if it is grabbed", body:"The wallet feels movement. Three sharp knocks in a row and it locks down and beeps until you touch the sensor.", foot:"Higher sensitivity means more false alarms in a bag or on a bike."}
-};
-
-/* The design speaks in whole seconds and the firmware in its own units, so
-   every preset needs a conversion in each direction. */
-const CONV = {
-  // The wallet holds the latch open in milliseconds.
-  relock:{ toWallet:v => ({relock:v*1000}),  fromWallet:c => Math.round(c.relock/1000) },
-  tries: { toWallet:v => ({maxfails:v}),     fromWallet:c => c.maxfails },
-  nudge: { toWallet:v => ({tamper:v}),       fromWallet:c => c.tamper },
-  /* The firmware cannot switch the leash off - sepwarn clamps to 5..3600 - so
-     "Never" means the far end of the range: an hour out of range before the
-     first beep. The design has no control for the full alarm, so it trails the
-     warning at 3x, which lands on the firmware's own 20/60 default pairing. */
-  leash: {
-    toWallet: v => v === 0
-      ? {sepwarn:3600, sepalert:7200}
-      : {sepwarn:v, sepalert:Math.min(7200, Math.max(10, v*3))},
-    fromWallet: c => c.sepwarn >= 3600 ? 0 : c.sepwarn
-  }
-};
-
-function pick(kind){ return CONV[kind].fromWallet(S.cfg); }
-
-/* The design offers presets; the wallet holds a free number, and its own
-   defaults do not all land on one - it ships with tamper at 2600 mg where the
-   nearest preset is 2500. Snap to the closest rather than showing a bare
-   figure the design has no room for. */
-function nearest(kind){
-  const cur = pick(kind);
-  return CHOICE_META[kind].list.reduce((best, o) =>
-    Math.abs(o.v - cur) < Math.abs(best.v - cur) ? o : best);
-}
-function word(kind){
-  const o = nearest(kind);
-  return o.short || o.label;
-}
-
-// ------------------------------------------------------------------ log --
-function log(msg, cls){
-  const el = $("log");
-  const t = new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit",second:"2-digit"});
-  const line = document.createElement("div");
-  const ts = document.createElement("span"); ts.className = "t"; ts.textContent = t + "  ";
-  const bd = document.createElement("span"); bd.className = cls || "rx"; bd.textContent = msg;
-  line.append(ts, bd); el.append(line);
-  while (el.childElementCount > 300) el.firstChild.remove();
-  el.scrollTop = el.scrollHeight;
-}
-
-// ------------------------------------------------------------ transport --
-async function connect(){
-  if (!navigator.bluetooth){ $("b-unsupported").hidden = false; return; }
-  try{
-    device = await navigator.bluetooth.requestDevice({
-      filters:[{namePrefix:"MONO"}, {namePrefix:"ONYX"}], optionalServices:[NUS]
-    });
-    device.addEventListener("gattserverdisconnected", onDisconnected);
-    const server = await device.gatt.connect();
-    const svc    = await server.getPrimaryService(NUS);
-    rxChar       = await svc.getCharacteristic(RX);
-    const txChar = await svc.getCharacteristic(TX);
-    await txChar.startNotifications();
-    txChar.addEventListener("characteristicvaluechanged", onNotify);
-
-    S.linked = true;
-    log("connected to " + (device.name || "wallet"), "ev");
-    recordFix(true);
-    send("STATUS"); send("GET");
-    render();
-  }catch(err){
-    S.linked = false;
-    log("connect failed: " + err.message, "er");
-    render();
-  }
-}
-
-function onDisconnected(){
-  S.linked = false; rxChar = null;
-  log("link lost", "er");
-  // The moment the link drops is the only moment we can honestly claim to know
-  // where the wallet was, so grab a fix right now.
-  recordFix(false);
-  render();
-}
-
-function disconnect(){ if (device && device.gatt.connected) device.gatt.disconnect(); }
-
-function onNotify(e){
-  rxBuf += new TextDecoder().decode(e.target.value);
-  let i;
-  while ((i = rxBuf.indexOf("\n")) >= 0){
-    const line = rxBuf.slice(0, i).trim();
-    rxBuf = rxBuf.slice(i + 1);
-    if (line) handleLine(line);
-  }
-}
-
-async function send(cmd){
-  if (!rxChar){ log("not connected", "er"); return; }
-  log("> " + cmd, "tx");
-  await rxChar.writeValue(new TextEncoder().encode(cmd + "\n"));
-}
-
-/* Settings go out one line at a time; the firmware saves to flash on each SET,
-   so they need a beat between them. */
-async function sendSettings(pairs){
-  for (const [k,v] of Object.entries(pairs)){
-    await send("SET " + k + " " + v);
-    await new Promise(r => setTimeout(r, 90));
-  }
-  send("GET");
-}
-
-// -------------------------------------------------------------- parsing --
-function kv(line){
-  const o = {};
-  line.split(/\s+/).slice(1).forEach(p => {
-    const [k,v] = p.split("=");
-    if (k && v !== undefined) o[k] = v;
-  });
-  return o;
-}
-
-function handleLine(line){
-  const head = line.split(" ")[0];
-  log(line, head === "EVT" ? "ev" : (head === "ERR" ? "er" : "rx"));
-
-  if (head === "STATUS"){
-    const s = kv(line);
-    S.state     = parseInt(s.state, 10);
-    S.vbat      = parseFloat(s.vbat);
-    S.templates = parseInt(s.templates, 10) || 0;
-    reconcileRoster();
-  }
-  else if (head === "GET"){
-    const s = kv(line);
-    ["relock","tamper","sepwarn","sepalert","maxfails"].forEach(k => {
-      if (s[k] !== undefined) S.cfg[k] = parseInt(s[k], 10);
-    });
-  }
-  else if (head === "ENROLL"){
-    const w = line.split(" ")[1];
-    if      (w === "start") { S.enroll = 1; S.enrollId = parseInt(kv(line).id, 10); }
-    else if (w === "place") { S.enroll = 1; }
-    else if (w === "lift" || w === "again") { S.enroll = 2; }
-    else if (w === "ok")    { S.enroll = 3; S.enrollId = parseInt(kv(line).id, 10);
-                              addPrint(S.enrollId); send("STATUS"); }
-    else if (w === "fail")  { S.enroll = {fail: line.split(" ")[2] || "unknown"}; }
-    else if (w === "busy")  { S.enroll = {fail: "busy"}; }
-  }
-  else if (head === "EVT"){
-    const w = line.split(" ")[1];
-    if (w === "tamper" || w === "separation") recordFix(false);
-    // FINDINGS A1: the old app never re-read status after these, so the screen
-    // showed the opposite of reality until you refreshed by hand.
-    if (["unlocked","relocked","lockout","tamper","rejected","lockdown"].includes(w)) send("STATUS");
-  }
-  else if (["DELETE","DELETEALL","LOCK","UNLOCK","CLEAR"].includes(head)){
-    send("STATUS");
-  }
-  render();
-}
-
-// -------------------------------------------------------------- roster --
-function addPrint(id){
-  const list = roster().filter(p => p.id !== id);
-  list.push({id, name:"Finger " + id, added:Date.now()});
-  list.sort((a,b) => a.id - b.id);
-  setRoster(list);
-}
-
-/* The wallet reports how many templates it holds, not which. If the roster and
-   the count disagree - a template enrolled from another phone, or storage
-   cleared - pad or trim so the screen never claims more than the wallet has. */
-function reconcileRoster(){
-  let list = roster();
-  if (list.length > S.templates) list = list.slice(0, S.templates);
-  for (let id = 1; list.length < S.templates; id++){
-    if (!list.some(p => p.id === id)) list.push({id, name:"Finger " + id, added:null});
-  }
-  list.sort((a,b) => a.id - b.id);
-  setRoster(list);
-}
-
-// ------------------------------------------------------------- battery --
-/* The firmware reports volts. The design shows a percentage, so map one to the
-   other on a single-cell lithium curve - it is far from linear near the top. */
-const CURVE = [[3.30,0],[3.60,25],[3.70,50],[3.85,75],[4.20,100]];
-function battPct(v){
-  if (isNaN(v)) return null;
-  if (v <= CURVE[0][0]) return 0;
-  if (v >= CURVE[CURVE.length-1][0]) return 100;
-  for (let i = 1; i < CURVE.length; i++){
-    const [v0,p0] = CURVE[i-1], [v1,p1] = CURVE[i];
-    if (v <= v1) return Math.round(p0 + (v - v0) / (v1 - v0) * (p1 - p0));
-  }
-  return null;
-}
-
-// ------------------------------------------------------------ location --
-function lastFix(){
-  const raw = store.get("mono.lastfix");
-  if (!raw) return null;
-  try { return JSON.parse(raw); } catch(e){ return null; }
-}
-
-function recordFix(linked){
-  if (!navigator.geolocation) return;
-  navigator.geolocation.getCurrentPosition(
-    p => {
-      store.set("mono.lastfix", JSON.stringify({
-        lat:p.coords.latitude, lon:p.coords.longitude,
-        acc:p.coords.accuracy, ts:Date.now(), linked:!!linked
-      }));
-      log("position recorded", "ev");
-      render();
-    },
-    e => log("location unavailable: " + e.message, "er"),
-    {enableHighAccuracy:true, timeout:10000, maximumAge:30000}
-  );
-}
-
-function ago(ts){
-  const mins = Math.round((Date.now() - ts) / 60000);
-  if (mins < 1)  return "Just now";
-  if (mins === 1) return "1 minute ago";
-  if (mins < 60) return mins + " minutes ago";
-  const h = Math.round(mins / 60);
-  return h === 1 ? "1 hour ago" : h + " hours ago";
-}
-
-// =================================================================== render
-const OPEN_LOCK = "M8.2 10.5V8a3.8 3.8 0 0 1 7.6 0";
-const SHUT_LOCK = "M8.2 10.5V8a3.8 3.8 0 0 1 7.6 0v2.5";
-
-function txt(id, v){ const el = $(id); if (el) el.textContent = v; }
-
-function render(){
-  const alarm = S.state === 5;
-  const latch = S.state === 2 ? "open" : alarm ? "lockdown" : "locked";
-
-  // ---- which screen ----
-  const showing = S.choice ? "choice" : S.screen;
-  document.querySelectorAll(".screen").forEach(el =>
-    el.classList.toggle("on", el.id === "s-" + showing));
-
-  // ---- top bar ----
-  txt("linklabel", S.linked ? "Nearby" : "Out of range");
-  $("linkicon").setAttribute("stroke", S.linked ? "#0B0B0B" : "#7A7A7A");
-  /* The design assumes a wallet already in hand. Web Bluetooth cannot open the
-     chooser without a tap, so the badge doubles as the way in. */
-  $("linkpill").title = S.linked ? "Tap to disconnect" : "Tap to connect";
-
-  // ---- alarm card ----
-  $("alarmcard").hidden = !alarm;
-
-  // ---- hero ----
-  const fix = lastFix();
-  if (S.linked){
-    txt("heroLabel", "WITH YOU");
-    txt("heroTitle", "It is close by");
-    txt("heroSub", "Connected over Bluetooth, so it is within a few metres of you.");
-  } else if (fix){
-    txt("heroLabel", "LAST SEEN");
-    txt("heroTitle", ago(fix.ts));
-    /* The mockup names a street here. Nothing on the phone can turn a fix into
-       a street without a geocoder, so say what is actually known. */
-    txt("heroSub", fix.lat.toFixed(4) + ", " + fix.lon.toFixed(4) +
-        " · where your phone was when it lost the wallet.");
-  } else {
-    txt("heroLabel", "LAST SEEN");
-    txt("heroTitle", "Not paired yet");
-    txt("heroSub", "Tap the badge at the top to find your wallet over Bluetooth.");
-  }
-  txt("ringLabel", S.ringing ? "Beeping" : "Ring it");
-
-  // ---- status card ----
-  txt("latchWord", latch === "open" ? "Open" : latch === "lockdown" ? "Locked down" : "Locked");
-  $("lockShackle").setAttribute("d", latch === "open" ? OPEN_LOCK : SHUT_LOCK);
-  const pct = battPct(S.vbat);
-  txt("battWord", pct === null ? "—" : pct + "%");
-  // The glyph is the design's; only how full it reads is ours.
-  $("battFill").setAttribute("width", pct === null ? 0 : Math.max(0.8, 9 * pct / 100).toFixed(2));
-  txt("printCount", S.state === null ? "—" : String(S.templates));
-
-  // ---- find ----
-  if (fix){
-    txt("fixAgo", ago(fix.ts));
-    txt("fixPos", fix.lat.toFixed(4) + ", " + fix.lon.toFixed(4));
-    const d = new Date(fix.ts);
-    const clock = d.toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
-    const today = d.toDateString() === new Date().toDateString();
-    txt("fixWhen", today ? "Today, " + clock : d.toLocaleDateString() + ", " + clock);
-    txt("fixAcc", "Within " + Math.round(fix.acc) + " m");
-  } else {
-    txt("fixAgo", "No fix recorded yet");
-    txt("fixPos", "—"); txt("fixWhen", "—"); txt("fixAcc", "—");
-  }
-  $("b-maps").disabled = !fix;
-  txt("fixBtnLabel", S.fixJustUpdated ? "Position updated" : "Record where I am now");
-
-  // ---- prints ----
-  renderPrints();
-
-  // ---- enroll ----
-  renderEnroll();
-
-  // ---- settings ----
-  txt("relockWord", word("relock")); txt("triesWord", word("tries"));
-  txt("leashWord",  word("leash"));  txt("nudgeWord",  word("nudge"));
-  txt("walletName", (device && device.name) || "Not paired");
-
-  // ---- choice ----
-  if (S.choice) renderChoice(S.choice);
-
-  // ---- hold overlay ----
-  renderHold(alarm || S.holdIntent === "clear");
-}
-
-function renderPrints(){
-  const host = $("printList");
-  host.textContent = "";
-  roster().forEach(p => {
-    const row = document.createElement("div");
-    row.className = "printrow";
-    row.innerHTML =
-      '<svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' +
-      '<path d="M12 20.5c-1.9 0-3.4-1.5-3.4-3.4V9.9a3.4 3.4 0 0 1 6.8 0v6.2"></path>' +
-      '<path d="M12 16.8V10.2"></path><path d="M5.6 8.4a7.7 7.7 0 0 1 12.8 0"></path></svg>';
-
-    const name = document.createElement("button");
-    name.type = "button"; name.className = "printname"; name.title = "Tap to rename";
-    const n = document.createElement("div"); n.className = "t-row"; n.textContent = p.name;
-    const m = document.createElement("div"); m.className = "printmeta";
-    m.textContent = p.added
-      ? "Added " + new Date(p.added).toLocaleDateString([], {day:"numeric", month:"long"})
-      : "Already on the wallet";
-    name.append(n, m);
-    // Naming is the one thing the wallet cannot store, so it happens here.
-    name.onclick = () => {
-      const v = prompt("What should this finger be called?", p.name);
-      if (v && v.trim()){
-        setRoster(roster().map(q => q.id === p.id ? {...q, name:v.trim()} : q));
-        render();
-      }
-    };
-
-    const rm = document.createElement("button");
-    rm.type = "button"; rm.className = "btn btn-remove"; rm.textContent = "Remove";
-    rm.onclick = () => {
-      if (!confirm("Remove " + p.name + " from the wallet?")) return;
-      setRoster(roster().filter(q => q.id !== p.id));
-      send("DELETE " + p.id);
-    };
-
-    row.append(name, rm);
-    host.append(row);
-  });
-}
-
-function renderEnroll(){
-  const e = S.enroll;
-  const failed = e && typeof e === "object";
-  const step = failed ? 1 : (e || 1);
-
-  $("dot1").classList.toggle("on", true);
-  $("dot2").classList.toggle("on", step > 2);
-  $("padFill").classList.toggle("done", step > 2);
-  $("padGlyph").setAttribute("stroke", step > 2 ? "#fff" : "#0B0B0B");
-
-  let title, body, cta, alt, ctaLive = false;
-  if (failed){
-    title = "That did not work";
-    body  = "The wallet reported: " + e.fail + ". Nothing was saved, so you can start again.";
-    cta   = "Try again"; alt = "Back to fingers"; ctaLive = true;
-  } else if (step === 1){
-    title = "Rest your finger on the sensor";
-    body  = "Cover the small silver circle on the front of the wallet and hold still.";
-    cta   = "Waiting for the sensor"; alt = "Cancel";
-  } else if (step === 2){
-    title = "Lift, then place the same finger again";
-    body  = "The wallet needs a second look at the same finger to be sure.";
-    cta   = "Waiting for the sensor"; alt = "Cancel";
-  } else {
-    title = "That finger can open it now";
-    body  = "Saved on the wallet as finger " + (S.enrollId ?? "?") +
-            ". Try it: touch the sensor and the wallet should open.";
-    cta   = "Add another finger"; alt = "Back to fingers"; ctaLive = true;
-  }
-  txt("enrollTitle", title); txt("enrollBody", body);
-  txt("enrollCta", cta); txt("enrollAlt", alt);
-  /* The mockup advanced on a tap. The real wallet advances itself as the sensor
-     reads, so the button keeps its place but does not pretend to drive it. */
-  $("enrollCta").disabled = !ctaLive;
-  $("enrollCta").style.opacity = ctaLive ? "" : ".45";
-}
-
-function renderChoice(kind){
-  const m = CHOICE_META[kind], cur = nearest(kind).v;
-  txt("choiceTitle", m.title); txt("choiceBody", m.body); txt("choiceFoot", m.foot);
-
-  const host = $("choiceList");
-  host.textContent = "";
-  m.list.forEach(o => {
-    const b = document.createElement("button");
-    b.type = "button";
-    b.className = "choicebtn" + (o.v === cur ? " on" : "");
-    const wrap = document.createElement("div"); wrap.style.flex = "1";
-    const lab = document.createElement("div"); lab.className = "lab";  lab.textContent = o.label;
-    const nte = document.createElement("div"); nte.className = "note"; nte.textContent = o.note;
-    wrap.append(lab, nte);
-    const ring = document.createElement("div");
-    ring.className = "tickring";
-    ring.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" ' +
-      'stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17.5 19 7"></path></svg>';
-    b.append(wrap, ring);
-    b.onclick = () => {
-      const pairs = CONV[kind].toWallet(o.v);
-      Object.assign(S.cfg, pairs);   // show the pick at once; GET confirms it
-      render();
-      sendSettings(pairs);
-    };
-    host.append(b);
-  });
-}
-
-function renderHold(alarmish){
-  const h = S.hold;
-  let title, body, cta;
-  if (h === "idle"){
-    title = "Hold to open";
-    body  = "Press and keep your finger down for a second. It will not open on a single tap.";
-    cta   = "Not now";
-  } else if (h === "holding"){
-    title = "Keep holding";
-    body  = "Almost there. Let go now and nothing happens.";
-    cta   = "Cancel";
-  } else {
-    title = alarmish ? "Alarm off" : "Open";
-    body  = alarmish
-      ? "The wallet has stopped beeping and locked itself again."
-      : "It will lock itself again in " + pick("relock") + " seconds.";
-    cta   = "Done";
-  }
-  txt("holdTitle", title); txt("holdBody", body); txt("b-holdcta", cta);
-  $("holdpad").classList.toggle("holding", h === "holding");
-  $("holdArc").setAttribute("stroke-dashoffset", h === "idle" ? "703.7" : "0");
-  $("holdcore").classList.toggle("done", h === "done");
-  $("holdGlyph").setAttribute("stroke", h === "done" ? "#0B0B0B" : "#fff");
-  $("holdShackle").setAttribute("d", h === "done" ? OPEN_LOCK : SHUT_LOCK);
-}
-
-// =================================================================== wiring
-function go(screen){ S.screen = screen; S.choice = null; render(); }
-
-$("linkpill").onclick = () => (device && device.gatt.connected) ? disconnect() : connect();
-
-// ---- home ----
-$("b-seemap").onclick    = () => go("find");
-$("b-goprints").onclick  = () => go("prints");
-$("b-gosettings").onclick = () => go("settings");
-$("b-ring").onclick = () => {
-  send("RING");
-  S.ringing = true; render();
-  clearTimeout($("b-ring")._t);
-  $("b-ring")._t = setTimeout(() => { S.ringing = false; render(); }, 2400);
-};
-$("b-holdopen").onclick  = () => openHold("unlock");
-$("b-alarmstop").onclick = () => openHold("clear");
-
-document.querySelectorAll(".nav-home").forEach(b => b.onclick = () => go("home"));
-$("b-backsettings").onclick = () => go("settings");
-document.querySelectorAll("[data-choice]").forEach(b =>
-  b.onclick = () => { S.choice = b.dataset.choice; render(); });
-
-// ---- find ----
-$("b-maps").onclick = () => {
-  const f = lastFix(); if (!f) return;
-  window.open("https://www.openstreetmap.org/?mlat=" + f.lat + "&mlon=" + f.lon +
-              "#map=18/" + f.lat + "/" + f.lon, "_blank", "noopener");
-};
-$("b-updatefix").onclick = () => { S.fixJustUpdated = true; recordFix(true); render(); };
-
-// ---- prints & enrolment ----
-$("b-goenroll").onclick = () => {
-  S.screen = "enroll"; S.choice = null; S.enroll = 1; S.enrollId = null;
-  render(); send("ENROLL");
-};
-$("b-removeall").onclick = () => {
-  if (!confirm("Remove every finger from the wallet?")) return;
-  setRoster([]); send("DELETEALL");
-};
-$("enrollCta").onclick = () => {           // live only on "done" and "failed"
-  S.enroll = 1; S.enrollId = null; render(); send("ENROLL");
-};
-$("enrollAlt").onclick = () => {
-  const midFlow = S.enroll === 1 || S.enroll === 2;
-  if (midFlow) send("CANCEL");
-  S.enroll = null; go("prints");
-};
-
-// ---- settings ----
-$("b-forget").onclick = () => {
-  if (!confirm("Forget this wallet? The fingers stay on the wallet itself; this phone drops its names and the last position.")) return;
-  store.del("onyx.prints"); store.del("mono.lastfix");
-  disconnect(); device = null;
-  S.state = null; S.vbat = NaN; S.templates = 0; S.linked = false;
-  log("wallet forgotten", "ev");
-  go("home");
-};
-
-// ---- the hold gesture ----
-let holdTimer = null;
-function openHold(intent){
-  S.holdIntent = intent; S.hold = "idle";
-  $("unlockOverlay").classList.add("on");
-  render();
-}
-function closeHold(){
-  clearTimeout(holdTimer);
-  S.hold = "idle";
-  $("unlockOverlay").classList.remove("on");
-  render();
-}
-const pad = $("holdpad");
-pad.addEventListener("pointerdown", e => {
-  if (S.hold === "done") return;
-  e.preventDefault();
-  S.hold = "holding"; render();
-  clearTimeout(holdTimer);
-  holdTimer = setTimeout(() => {
-    S.hold = "done"; render();
-    // A hold is friction, not authentication - the firmware still opens on the
-    // bare UNLOCK line (see FINDINGS F1).
-    send(S.holdIntent === "clear" ? "CLEAR" : "UNLOCK");
-  }, 950);
-});
-["pointerup","pointerleave","pointercancel"].forEach(ev =>
-  pad.addEventListener(ev, () => {
-    if (S.hold === "done") return;
-    clearTimeout(holdTimer);
-    S.hold = "idle"; render();
-  }));
-$("b-closehold").onclick = closeHold;
-$("b-holdcta").onclick   = closeHold;
-
-// ---- diagnostics: long press the wordmark ----
-let pressTimer = null;
-const wordmark = $("wordmark");
-wordmark.addEventListener("pointerdown", () => {
-  clearTimeout(pressTimer);
-  pressTimer = setTimeout(() => $("diag").classList.add("on"), 600);
-});
-["pointerup","pointerleave","pointercancel"].forEach(ev =>
-  wordmark.addEventListener(ev, () => clearTimeout(pressTimer)));
-wordmark.addEventListener("contextmenu", e => e.preventDefault());
-
-$("diagScrim").onclick   = () => $("diag").classList.remove("on");
-$("b-diagclose").onclick = () => $("diag").classList.remove("on");
-$("b-clearlog").onclick  = () => { $("log").textContent = ""; };
-$("b-delid").onclick = () => {
-  const id = prompt("Delete which fingerprint ID?");
-  if (!id) return;
-  const n = parseInt(id, 10);
-  if (isNaN(n)) return;
-  setRoster(roster().filter(p => p.id !== n));
-  send("DELETE " + n);
-};
-document.querySelectorAll("[data-cmd]").forEach(b =>
-  b.onclick = () => send(b.dataset.cmd));
-
-// ------------------------------------------------------------------ boot --
-if (!navigator.bluetooth)      $("b-unsupported").hidden = false;
-if (!window.isSecureContext)   $("b-insecure").hidden = false;
-
-// The veil animates itself out at 2.05s; drop it from the tree once it has.
-setTimeout(() => $("veil").classList.add("off"), 2800);
-
-render();
-log("ready — tap the badge to pair with the wallet");
-</script>
+<noscript><p style="padding:24px;font-family:system-ui">ONYX needs JavaScript to talk to your wallet.</p></noscript>
 </body>
 </html>
