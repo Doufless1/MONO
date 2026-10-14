@@ -5,3 +5,4 @@ shapely==2.1.2
 numpy==2.4.2
 manifold3d==3.5.2
 mapbox_earcut==2.0.0
+rtree==1.4.1         # trimesh needs it for ray casting (the access-path checks)

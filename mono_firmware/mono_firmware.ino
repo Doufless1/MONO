@@ -88,7 +88,7 @@ struct Settings {
 
 struct Note        { uint16_t hz, onMs, offMs; };
 struct Player      { const Note *seq; uint8_t len, idx, prio; bool on; uint32_t nextAt; };
-struct LineBuf     { char buf[LINE_MAX]; uint8_t len; bool overflow; };
+struct LineBuf     { char buf[CMD_LINE_MAX]; uint8_t len; bool overflow; };
 struct Session     { bool authed, nonceLive, bye; uint8_t nonce[NONCE_LEN]; };
 struct LatchState  { bool open, powered; uint32_t relockAt, powerOffAt; };
 struct TamperState { bool above; uint8_t knocks; uint32_t firstKnockAt, nextSampleAt; };
@@ -1145,7 +1145,7 @@ static void feedByte(Port p, char c) {
     return;
   }
   if (l.overflow) return;
-  if (l.len < LINE_MAX - 1) l.buf[l.len++] = c;
+  if (l.len < CMD_LINE_MAX - 1) l.buf[l.len++] = c;
   else                      l.overflow = true;   // refuse the whole line, never run a prefix
 }
 

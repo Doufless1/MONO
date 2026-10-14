@@ -78,7 +78,8 @@
 #define MAX_PHONES       4      /* paired phone keys kept on the wallet        */
 #define PHONE_KEY_LEN   16      /* bytes; HMAC-SHA256 key per phone            */
 #define NONCE_LEN       16      /* bytes; one fresh challenge per HELLO        */
-#define LINE_MAX        96      /* longest command line, terminator included   */
+#define CMD_LINE_MAX    96      /* longest command line, terminator included (not
+                                   LINE_MAX: glibc's <limits.h> owns that name)  */
 #define OUT_MAX        168      /* longest line the wallet ever sends          */
 
 #endif

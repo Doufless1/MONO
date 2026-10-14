@@ -31,6 +31,13 @@
 #define VBAT_ENABLE (14)
 #define PIN_VBAT    (32)
 
+/* Same idea for the C library: glibc's <limits.h> defines LINE_MAX (POSIX,
+   2048), MinGW's does not, so a sketch macro named LINE_MAX built on Windows
+   and broke CI on Linux. Defined here, it breaks everywhere. */
+#ifndef LINE_MAX
+#define LINE_MAX 2048
+#endif
+
 // ------------------------------------------------------------ the clock --
 extern uint32_t g_millis;
 inline uint32_t millis() { return g_millis; }
