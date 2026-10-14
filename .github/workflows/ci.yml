@@ -45,6 +45,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: arduino/setup-arduino-cli@v2
+      # After compiling, the Seeed core packages the firmware for upload with
+      # adafruit-nrfutil, a Python tool it expects to find on PATH.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install adafruit-nrfutil
       - name: Install the Seeed nRF52 core and the two libraries
         run: |
           arduino-cli config init

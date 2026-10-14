@@ -45,7 +45,7 @@ static const char *platenName() {
 // Everything a digital twin needs to draw the wallet, plus the firmware's
 // own view of itself. Flat key=value so it is trivial to parse anywhere.
 static std::string benchPeek() {
-  char b[512];
+  char b[1024];                // room for every number at its widest
   snprintf(b, sizeof b,
            "PEEK ms=%lu servo=%d servo_on=%d led=%d buzz=%d hz=%u adv=%u adv_on=%d connectable=%d "
            "conn=%d auth=%d latch=%s sensor=%s alarm=%d enroll=%s fingers=%u phones=%u leash=%s "

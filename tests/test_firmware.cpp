@@ -764,7 +764,7 @@ int main() {
   enrollFinger(FRIEND);
   g_sleepHook = nullptr;
   {
-    char m[96];
+    char m[160];
     snprintf(m, sizeof m, "through a ring, an alarm, an unlock and an enrolment, no delay() exceeded %lu ms (longest %lu)",
              (unsigned long)IDLE_MAX_MS, (unsigned long)g_longestDelay);
     CHECK(g_longestDelay <= IDLE_MAX_MS, m);

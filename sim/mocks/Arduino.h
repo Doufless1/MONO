@@ -105,12 +105,12 @@ struct MockSerial {
   void println(unsigned v)      { flush_(std::to_string(v)); }
   void println(long v)          { flush_(std::to_string(v)); }
   void println(unsigned long v) { flush_(std::to_string(v)); }
-  void println(float v, int d)  { char b[32]; snprintf(b, sizeof b, "%.*f", d, v); flush_(b); }
+  void println(float v, int d)  { char b[64]; snprintf(b, sizeof b, "%.*f", d < 0 ? 0 : d > 6 ? 6 : d, v); flush_(b); }
   void print(const char *s)     { pending += s; }
   void print(int v)             { pending += std::to_string(v); }
   void print(unsigned v)        { pending += std::to_string(v); }
   void print(char c)            { pending += c; }
-  void print(float v, int d)    { char b[32]; snprintf(b, sizeof b, "%.*f", d, v); pending += b; }
+  void print(float v, int d)    { char b[64]; snprintf(b, sizeof b, "%.*f", d < 0 ? 0 : d > 6 ? 6 : d, v); pending += b; }
 };
 extern MockSerial Serial;
 extern MockSerial Serial1;
