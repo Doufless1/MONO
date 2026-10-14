@@ -19,6 +19,18 @@
 #define OUTPUT 1
 #define AR_INTERNAL_3_0 3
 
+/* Pin macros the Seeed XIAO nRF52840 variant defines before the sketch's own
+   code runs. They are mirrored here so a sketch macro that collides with one
+   fails this build (-Werror) instead of only warning on the board, where it
+   would also quietly re-point LED_BUILTIN. v2's PIN_LED did exactly that. */
+#define LED_RED     (11)
+#define LED_BLUE    (12)
+#define LED_GREEN   (13)
+#define PIN_LED     (LED_RED)
+#define LED_BUILTIN (PIN_LED)
+#define VBAT_ENABLE (14)
+#define PIN_VBAT    (32)
+
 // ------------------------------------------------------------ the clock --
 extern uint32_t g_millis;
 inline uint32_t millis() { return g_millis; }
@@ -33,8 +45,10 @@ inline void delay(uint32_t ms) {
 }
 
 // ------------------------------------------------------------- recorders --
-struct Beep { uint16_t freq, ms; uint32_t at; };
+// A beep's ms is filled in by noTone(); 0 while it is still sounding.
+struct Beep { uint16_t freq; uint32_t ms; uint32_t at; };
 extern std::vector<Beep>        g_beeps;
+extern bool                     g_buzzerOn;
 extern std::vector<int>         g_servoWrites;
 extern std::vector<std::string> g_out;      // every line the firmware emitted
 extern int   g_pinState[64];
@@ -48,8 +62,16 @@ inline void analogReference(int) {}
 inline void analogReadResolution(int) {}
 inline int  analogRead(int) { return (int)g_vbatRaw; }
 
-inline void tone(int, uint16_t f, uint16_t ms) { g_beeps.push_back({f, ms, g_millis}); }
-inline void noTone(int) {}
+inline void tone(int, unsigned int f, unsigned long ms = 0) {
+  Beep b = { (uint16_t)f, (uint32_t)ms, g_millis };
+  g_beeps.push_back(b);
+  g_buzzerOn = true;
+}
+inline void noTone(int) {
+  if (g_buzzerOn && !g_beeps.empty() && g_beeps.back().ms == 0)
+    g_beeps.back().ms = g_millis - g_beeps.back().at;
+  g_buzzerOn = false;
+}
 
 template <typename T, typename L, typename H>
 inline T constrain(T v, L lo, H hi) { return v < (T)lo ? (T)lo : (v > (T)hi ? (T)hi : v); }

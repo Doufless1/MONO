@@ -32,7 +32,9 @@
 
 #include <bluefruit.h>
 
+#ifndef MONO_ENABLE_FINDMY
 #define MONO_ENABLE_FINDMY 0     // <-- set to 1 once you have pasted a real key
+#endif
 
 /* ---------------------------------------------------------------------------
    YOUR PUBLIC KEY  -  28 bytes, from macless-haystack's generate_keys.py
