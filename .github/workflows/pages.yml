@@ -1,0 +1,56 @@
+# Publishes the project page, the ONYX app and the simulated wallet to GitHub
+# Pages. One-time setup: Settings > Pages > Build and deployment > Source:
+# "GitHub Actions". Until then this workflow fails at configure-pages; CI is
+# unaffected.
+name: Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.16.0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build the firmware as WebAssembly
+        run: python sim/build_wasm.py
+      - name: Assemble the site
+        run: |
+          mkdir -p _site/cad _site/sim
+          cp site/index.html _site/index.html
+          cp -r site mono_app _site/
+          cp sim/wallet-sim.js sim/mono_wallet.wasm _site/sim/
+          cp -r cad/assembly cad/reference _site/cad/
+          mkdir -p _site/docs && cp -r docs/images _site/docs/
+          touch _site/.nojekyll
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

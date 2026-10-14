@@ -1,0 +1,16 @@
+* text=auto
+
+*.stl   binary
+*.glb   binary
+*.wasm  binary
+*.png   binary
+*.jpg   binary
+*.gif   binary
+
+# The sketch is C++ as far as GitHub's language bar is concerned
+*.ino linguist-language=C++
+
+# Generated, committed so a clone works without the toolchain; collapsed in diffs
+cad/stl/**            linguist-generated
+cad/assembly/**       linguist-generated
+sim/mono_wallet.wasm  linguist-generated

@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  firmware:
+    name: Firmware on a virtual clock (${{ matrix.build.name }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        build:
+          - { name: default, flags: "" }
+          - { name: Find My compiled in, flags: "-DMONO_ENABLE_FINDMY=1" }
+          - { name: bench build, flags: "-DMONO_BENCH=1" }
+    steps:
+      - uses: actions/checkout@v4
+      # gnu++11 is what the board's own toolchain uses, so anything it would
+      # reject is rejected here first.
+      - name: Build the sketch, unmodified, against the virtual hardware
+        run: |
+          mkdir -p build
+          g++ -std=gnu++11 -Wall -Wextra -Werror ${{ matrix.build.flags }} -x c++ -I sim/mocks \
+              -o build/test_firmware tests/test_firmware.cpp
+      - name: Run the suite
+        run: ./build/test_firmware
+      - name: The terminal simulator builds
+        if: matrix.build.name == 'default'
+        run: g++ -std=gnu++11 -Wall -Wextra -DMONO_BENCH=1 -pthread -x c++ -I sim/mocks -o build/mono_sim sim/mono_sim.cpp
+
+  board:
+    name: Firmware compiles for the real XIAO nRF52840 Sense
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: arduino/setup-arduino-cli@v2
+      - name: Install the Seeed nRF52 core and the two libraries
+        run: |
+          arduino-cli config init
+          arduino-cli config add board_manager.additional_urls https://files.seeedstudio.com/arduino/package_seeeduino_boards_index.json
+          arduino-cli core update-index
+          arduino-cli core install Seeeduino:nrf52
+          arduino-cli lib install "Adafruit Fingerprint Sensor Library" "Seeed Arduino LSM6DS3"
+      # Found from the installed core rather than hard-coded, so a renamed
+      # board entry is reported plainly instead of as a cryptic FQBN error.
+      - name: Find the board
+        id: board
+        run: |
+          arduino-cli board listall | tee boards.txt
+          fqbn=$(grep -i "xiao" boards.txt | grep -i "sense" | grep -o "Seeeduino:nrf52:[A-Za-z0-9_]*" | head -n 1)
+          if [ -z "$fqbn" ]; then echo "::error::no XIAO nRF52840 Sense entry in the Seeeduino:nrf52 core"; exit 1; fi
+          echo "fqbn=$fqbn" >> "$GITHUB_OUTPUT"
+      - name: Compile
+        run: arduino-cli compile --fqbn "${{ steps.board.outputs.fqbn }}" --warnings default mono_firmware
+
+  cad:
+    name: CAD geometry, mock-up, and the committed STLs are current
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: cad/requirements.txt
+      - run: pip install -r cad/requirements.txt
+      - run: python tests/test_cad.py --regen
+
+  app:
+    name: App - unit, transport and shell suites, and the session against the real firmware as WebAssembly
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.16.0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      # The tests run against a fresh build, so they always test this commit's
+      # firmware. The committed copy only exists so a clone runs without Zig;
+      # if it has fallen behind, say so without failing the build.
+      - name: Build the firmware as WebAssembly
+        run: |
+          cp sim/mono_wallet.wasm "$RUNNER_TEMP/committed.wasm"
+          python sim/build_wasm.py
+          if ! cmp -s sim/mono_wallet.wasm "$RUNNER_TEMP/committed.wasm"; then
+            echo "::warning file=sim/mono_wallet.wasm::differs from a fresh build - run python sim/build_wasm.py and commit it"
+          fi
+      - name: Unit and integration tests
+        run: node --test "tests/app/*.test.mjs"
+      - name: Every browser module parses
+        run: for f in mono_app/js/*.js mono_app/sw.js site/*.js sim/wallet-sim.js tools/snap.mjs; do node --check "$f"; done

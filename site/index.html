@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>MONO - a fingerprint wallet you can test without building one</title>
+<meta name="description" content="MONO is a card wallet that opens for your finger and your phone. Its firmware runs, unmodified, on an nRF52 board, in a C++ test suite, in a terminal and in your browser as WebAssembly.">
+<meta property="og:title" content="MONO - a fingerprint wallet you can test without building one">
+<meta property="og:description" content="Firmware, companion app and CAD for a biometric card wallet, all testable without the hardware. Try the real firmware in your browser.">
+<!-- link previews need absolute URLs: crawlers ignore a relative og:image -->
+<link rel="canonical" href="https://doufless1.github.io/MONO_prototype/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://doufless1.github.io/MONO_prototype/">
+<meta property="og:image" content="https://doufless1.github.io/MONO_prototype/docs/images/concept.jpg">
+<meta property="og:image:width" content="1600">
+<meta property="og:image:height" content="1000">
+<meta property="og:image:alt" content="The MONO wallet standing upright, its cards fanned out of the top edge, its green status LED lit.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0B0B0B">
+<link rel="icon" href="mono_app/icons/icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="site/site.css">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+} }
+</script>
+<script type="module" src="site/site.js"></script>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="logo" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" stroke-width="8"/><path d="M50 25C52 42 58 48 75 50 58 52 52 58 50 75 48 58 42 52 25 50 42 48 48 42 50 25Z" fill="currentColor"/></symbol>
+  <symbol id="gh" viewBox="0 0 24 24"><path fill="currentColor" d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.7 5.4-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></symbol>
+</svg>
+
+<header class="nav">
+  <a class="mark" href="#top" aria-label="MONO home"><svg><use href="#logo"/></svg><b>MONO</b></a>
+  <nav>
+    <a href="#demo">Live demo</a>
+    <a href="#how">How it works</a>
+    <a href="#cad">CAD</a>
+    <a href="#review">Review</a>
+    <a class="gh" href="https://github.com/Doufless1/MONO_prototype" aria-label="Source on GitHub"><svg><use href="#gh"/></svg><span>Source</span></a>
+  </nav>
+</header>
+
+<main id="top">
+
+<!-- ================================================================ hero -->
+<section class="hero">
+  <div class="hero-copy">
+    <p class="eyebrow">Firmware &middot; companion app &middot; CAD</p>
+    <h1>A fingerprint wallet you can test <em>without building one.</em></h1>
+    <p class="lede">MONO is a card wallet that opens for your finger and for your phone. Its firmware runs on a
+      thumb-sized nRF52 board &mdash; and, unmodified, in a C++ test suite, in a terminal, and in this page as WebAssembly.</p>
+    <div class="cta">
+      <a class="btn primary" href="#demo">Try the live demo</a>
+      <a class="btn" href="https://github.com/Doufless1/MONO_prototype">Read the source</a>
+    </div>
+    <dl class="stats">
+      <div><dt>213</dt><dd>firmware assertions, on a virtual clock</dd></div>
+      <div><dt>36</dt><dd>app tests, 13 against the real firmware</dd></div>
+      <div><dt>61</dt><dd>geometry checks measured off the meshes</dd></div>
+      <div><dt>0</dt><dd>pieces of hardware needed to run any of it</dd></div>
+    </dl>
+  </div>
+  <figure class="hero-art">
+    <img src="docs/images/concept.jpg" width="1600" height="1000" alt="The MONO wallet standing upright, its cards fanned out of the top edge, its green status LED lit.">
+  </figure>
+</section>
+
+<!-- ================================================================ demo -->
+<section id="demo" class="demo" aria-labelledby="demo-title">
+  <header class="section-head">
+    <p class="eyebrow">Live demo</p>
+    <h2 id="demo-title">The real firmware, running in this tab</h2>
+    <p>On the left, the ONYX app &mdash; the same code that talks to a wallet over Web Bluetooth. On the right, the wallet:
+      <code>mono_firmware.ino</code> compiled to a 76&nbsp;KB WebAssembly module, drawn from its own outputs. The servo angle
+      moves the latch, the LED pin lights the LED, the buzzer pin makes the waves.</p>
+  </header>
+
+  <div class="demo-grid">
+    <div class="phone-col">
+      <div class="phone" id="phone">
+        <iframe id="appFrame" title="The ONYX companion app, connected to the simulated wallet" loading="lazy"></iframe>
+        <button type="button" class="phone-start" id="startDemo">
+          <svg><use href="#logo"/></svg>
+          <b>Start the demo</b>
+          <span>Boots the wallet and opens the app</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="twin-col">
+      <div class="twin" id="twinBox">
+        <canvas id="twin" aria-label="A 3D model of the wallet, driven by the simulated firmware"></canvas>
+        <div class="hud" aria-live="polite">
+          <span class="chip" id="hudLatch">Locked</span>
+          <span class="chip" id="hudRadio">Advertising every 152 ms</span>
+          <span class="chip alarm" id="hudAlarm" hidden>Alarm</span>
+        </div>
+        <p class="twin-hint" id="twinHint">Drag to turn it. Press and hold the sensor to touch it with your finger.</p>
+      </div>
+      <div class="bench" role="group" aria-label="The physical world">
+        <button type="button" class="key" data-hold="!touch 1|!lift"><b>Your finger</b><span>press &amp; hold</span></button>
+        <button type="button" class="key" data-hold="!touch 2|!lift"><b>Someone else</b><span>press &amp; hold</span></button>
+        <button type="button" class="key" data-hold="!shake on|!shake off"><b>Shake it</b><span>press &amp; hold</span></button>
+        <button type="button" class="key" id="walk" aria-pressed="false"><b>Walk away</b><span>take the phone with you</span></button>
+        <label class="batt"><b>Battery <output id="battOut">4.05 V</output></b>
+          <input type="range" id="batt" min="3.3" max="4.2" step="0.05" value="4.05"></label>
+      </div>
+      <p class="try"><b>Try this:</b> pair the app, add your finger (hold <em>Your finger</em> twice) and open the wallet
+        with it. Once it has locked itself again, shake it &mdash; an open wallet ignores shaking, since that is you
+        taking a card out. Then walk away for a minute and listen.</p>
+    </div>
+
+    <aside class="inspector" aria-label="Inside the firmware">
+      <h3>Inside the firmware</h3>
+      <dl class="state" id="state"></dl>
+      <h3>On the air <small>Nordic UART, line by line</small></h3>
+      <ol class="trace" id="trace" aria-live="off"></ol>
+    </aside>
+  </div>
+</section>
+
+<!-- ================================================================= how -->
+<section id="how" class="how" aria-labelledby="how-title">
+  <header class="section-head">
+    <p class="eyebrow">How it works</p>
+    <h2 id="how-title">One firmware. Four places it runs.</h2>
+    <p>The sketch is compiled, unmodified, against a layer of virtual hardware &mdash; a fingerprint sensor with fingers that
+      have identities, an IMU that can be shaken, a servo, a radio, flash that survives a power cycle. Every mock records what
+      the firmware did to it, so a test can assert that a tamper really drove the latch shut, not merely that it printed so.</p>
+  </header>
+  <figure class="arch">
+    <svg viewBox="0 0 1000 430" role="img" aria-labelledby="archTitle">
+      <title id="archTitle">mono_firmware.ino runs on the XIAO board, in the C++ test harness, in a terminal simulator, and as WebAssembly for the browser demo and the Node tests; the ONYX app talks to it over Web Bluetooth or a simulated link through the same session layer.</title>
+      <defs>
+        <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="currentColor"/></marker>
+      </defs>
+      <g class="node strong"><rect x="380" y="20" width="240" height="76" rx="18"/><text x="500" y="54">mono_firmware.ino</text><text x="500" y="76" class="sub">C++11 &middot; 1 translation unit</text></g>
+      <g class="edge"><path d="M440 96 C 300 140, 140 140, 110 186" marker-end="url(#ah)"/><path d="M475 96 C 420 140, 360 150, 345 186" marker-end="url(#ah)"/><path d="M525 96 C 580 140, 640 150, 655 186" marker-end="url(#ah)"/><path d="M560 96 C 700 140, 860 140, 890 186" marker-end="url(#ah)"/></g>
+      <g class="node"><rect x="20" y="186" width="180" height="96" rx="16"/><text x="110" y="220">XIAO nRF52840</text><text x="110" y="242" class="sub">real BLE, R502, servo</text><text x="110" y="262" class="sub">arduino-cli</text></g>
+      <g class="node"><rect x="255" y="186" width="180" height="96" rx="16"/><text x="345" y="220">Test harness</text><text x="345" y="242" class="sub">virtual clock &middot; g++</text><text x="345" y="262" class="sub">213 assertions</text></g>
+      <g class="node"><rect x="565" y="186" width="180" height="96" rx="16"/><text x="655" y="220">Terminal sim</text><text x="655" y="242" class="sub">wall clock &middot; stdin</text><text x="655" y="262" class="sub">!touch 1, !shake on</text></g>
+      <g class="node"><rect x="800" y="186" width="180" height="96" rx="16"/><text x="890" y="220">WebAssembly</text><text x="890" y="242" class="sub">zig c++ &middot; 76 KB</text><text x="890" y="262" class="sub">browser and Node</text></g>
+      <g class="edge"><path d="M890 282 C 890 330, 700 340, 640 350" marker-end="url(#ah)"/><path d="M110 282 C 110 330, 300 340, 360 350" marker-end="url(#ah)"/></g>
+      <text x="250" y="328" class="lbl">Web Bluetooth</text><text x="750" y="328" class="lbl">simulated link</text>
+      <g class="node strong"><rect x="360" y="330" width="280" height="80" rx="18"/><text x="500" y="364">ONYX app &middot; session.js</text><text x="500" y="386" class="sub">HELLO &middot; HMAC AUTH &middot; pushed STATUS</text></g>
+    </svg>
+  </figure>
+  <div class="cards3">
+    <article><h3>Proved on a virtual clock</h3><p>A 30-second lockout or a 60-second walk-away alarm costs nothing: <code>delay()</code> advances the clock. A recorder proves that across an alarm, a ring, an unlock and an enrolment, the main loop never once sleeps longer than 20&nbsp;ms.</p></article>
+    <article><h3>The app meets the real firmware</h3><p>The app's session layer is tested in Node against the WebAssembly build: the browser's WebCrypto HMAC has to agree, byte for byte, with the firmware's own SHA-256, or a saved key cannot reconnect.</p></article>
+    <article><h3>Only your phone, only your finger</h3><p>A phone pairs once, with the owner's finger on the sensor to say yes, and proves itself on every connection with a fresh challenge. The key crosses the air once and never again.</p></article>
+  </div>
+</section>
+
+<!-- ================================================================= cad -->
+<section id="cad" class="cad" aria-labelledby="cad-title">
+  <header class="section-head">
+    <p class="eyebrow">CAD</p>
+    <h2 id="cad-title">Assembled before it is printed</h2>
+    <p>The works model is a parametric script. Before a single STL is trusted, every part and every component goes into a
+      digital mock-up that checks 226 pairs of solids for clashes, pushes a USB-C plug home, slides the cards out through the
+      mouth, and proves the LED, the buzzer and the latch each have a way out.</p>
+  </header>
+  <div class="cad-grid">
+    <div class="viewer">
+      <canvas id="cadView" aria-label="The works model, which you can explode and turn"></canvas>
+      <div class="viewer-ui">
+        <label class="explode">Explode <input type="range" id="explode" min="0" max="1" step="0.01" value="0.65"></label>
+        <div class="seg" role="radiogroup" aria-label="Model">
+          <button type="button" role="radio" aria-checked="true" data-model="b">Works model</button>
+          <button type="button" role="radio" aria-checked="false" data-model="a">Looks model</button>
+        </div>
+      </div>
+      <p class="viewer-label" id="partLabel" aria-live="polite">Hover a part</p>
+    </div>
+    <ul class="dmu" id="dmu">
+      <li><b>0 clashes</b> across 22 solids and 226 pairs</li>
+      <li><b>6.25 mm</b> of USB-C engagement through the case</li>
+      <li><b>54.6 mm</b> mouth for 53.98 mm cards, with snap nubs</li>
+      <li><b>100 %</b> septum between the cards and the electronics</li>
+      <li><b>4.3 mm</b> of M2 thread in every boss</li>
+      <li><b>17.56 mm</b> thick for six cards, and <code>N_CARDS_B</code> really drives it</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================================== review -->
+<section id="review" class="review" aria-labelledby="review-title">
+  <header class="section-head">
+    <p class="eyebrow">Review</p>
+    <h2 id="review-title">Every bug found, reproduced, fixed &mdash; and pinned by a test</h2>
+    <p>The full write-up, with the reproduction that found each one, is in <a href="https://github.com/Doufless1/MONO_prototype/blob/main/docs/REVIEW.md">docs/REVIEW.md</a>. A few:</p>
+  </header>
+  <ol class="bugs">
+    <li><b>Any phone in range could open the wallet</b> with one unauthenticated line. Now: owner-confirmed pairing and an HMAC challenge on every connection.</li>
+    <li><b>Enrolling after a delete overwrote someone else's finger</b>, because the next id was count&nbsp;+&nbsp;1.</li>
+    <li><b>An alarm could leave the radio beaconing every 20&nbsp;ms forever</b>, even after the phone came back.</li>
+    <li><b>Tapping Disconnect set off the walk-away alarm</b>; and a stranger connecting silenced it.</li>
+    <li><b>The same knock raised the alarm or not depending on what the main loop was doing.</b></li>
+    <li><b>The case's USB-C and latch slots were blind</b> behind 0.5&nbsp;mm of plastic, and the halves of the looks model could not close: its pin holes were 0.05&nbsp;mm deep.</li>
+    <li><b>The concept was drawn around 52&nbsp;mm cards.</b> A real 53.98&nbsp;mm card cannot fit it, which is where the 0.76&nbsp;mm walls came from.</li>
+    <li><b>The app said "Open" whether or not the wallet had heard</b>, and fired overlapping Bluetooth writes that Chrome rejects.</li>
+  </ol>
+</section>
+</main>
+
+<footer class="foot">
+  <p><svg><use href="#logo"/></svg> MONO &middot; firmware, app and CAD in one repository &middot;
+    <a href="https://github.com/Doufless1/MONO_prototype/blob/main/docs/ARCHITECTURE.md">Architecture</a> &middot; <a href="https://github.com/Doufless1/MONO_prototype/blob/main/docs/PROTOCOL.md">Protocol</a> &middot;
+    <a href="https://github.com/Doufless1/MONO_prototype/blob/main/docs/SECURITY.md">Security</a> &middot; <a href="https://github.com/Doufless1/MONO_prototype/blob/main/docs/HARDWARE.md">Hardware</a></p>
+</footer>
+</body>
+</html>

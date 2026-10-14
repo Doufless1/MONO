@@ -1,8 +1,18 @@
-# build artifacts
-tests/build/
+# build output
+build/
+_site/
 __pycache__/
 *.pyc
+node_modules/
 
-# generated geometry - regenerate with: python mono_wallet_cad.py
-# (kept in tree for now so prints are reproducible; drop this comment if you
-#  would rather not version 700 KB of mesh)
+# local tooling and editor noise
+.claude/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Committed on purpose, though generated - each has a check that it is current:
+#   cad/stl/, cad/assembly/   python cad/mono_wallet_cad.py   (tests/test_cad.py)
+#   sim/mono_wallet.wasm      python sim/build_wasm.py        (CI rebuilds and compares)
+#   docs/images/              tools/render.py, tools/snap.mjs
