@@ -1,0 +1,76 @@
+{
+ "units": "m",
+ "up": "y",
+ "parts": [
+  {
+   "name": "A1_looks_front_half",
+   "role": "shell",
+   "explode_z": 14.0,
+   "size_mm": [
+    56.2,
+    89.2,
+    4.6
+   ]
+  },
+  {
+   "name": "A2_looks_back_half",
+   "role": "shell",
+   "explode_z": -14.0,
+   "size_mm": [
+    56.2,
+    89.2,
+    3.6
+   ]
+  },
+  {
+   "name": "A3_spring_clip",
+   "role": "metal",
+   "explode_z": -24.0,
+   "size_mm": [
+    21.5,
+    54.78,
+    5.17
+   ]
+  },
+  {
+   "name": "card_1",
+   "role": "card",
+   "explode_z": 0.0,
+   "size_mm": [
+    52.02,
+    84.02,
+    0.7
+   ]
+  },
+  {
+   "name": "card_2",
+   "role": "card",
+   "explode_z": 0.0,
+   "size_mm": [
+    52.02,
+    84.02,
+    0.7
+   ]
+  },
+  {
+   "name": "card_3",
+   "role": "card",
+   "explode_z": 0.0,
+   "size_mm": [
+    52.02,
+    84.02,
+    0.7
+   ]
+  },
+  {
+   "name": "card_4",
+   "role": "card",
+   "explode_z": 0.0,
+   "size_mm": [
+    52.02,
+    84.02,
+    0.7
+   ]
+  }
+ ]
+}

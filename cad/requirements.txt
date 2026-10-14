@@ -1,0 +1,7 @@
+# The CAD generator and its geometry tests. Pinned to the versions the
+# committed STLs were generated with, so a re-run reproduces them exactly.
+trimesh==5.0.0
+shapely==2.1.2
+numpy==2.4.2
+manifold3d==3.5.2
+mapbox_earcut==2.0.0

@@ -1,0 +1,206 @@
+{
+ "units": "m",
+ "up": "y",
+ "parts": [
+  {
+   "name": "B1",
+   "role": "shell",
+   "explode_z": -18.0,
+   "size_mm": [
+    62.0,
+    96.0,
+    8.06
+   ]
+  },
+  {
+   "name": "B2",
+   "role": "shell",
+   "explode_z": 19.0,
+   "size_mm": [
+    62.0,
+    96.0,
+    10.5
+   ]
+  },
+  {
+   "name": "B3",
+   "role": "tray",
+   "explode_z": 12.0,
+   "size_mm": [
+    53.6,
+    83.6,
+    4.2
+   ]
+  },
+  {
+   "name": "card_1",
+   "role": "card",
+   "explode_z": -9.0,
+   "size_mm": [
+    53.98,
+    85.6,
+    0.76
+   ]
+  },
+  {
+   "name": "card_2",
+   "role": "card",
+   "explode_z": -9.0,
+   "size_mm": [
+    53.98,
+    85.6,
+    0.76
+   ]
+  },
+  {
+   "name": "card_3",
+   "role": "card",
+   "explode_z": -9.0,
+   "size_mm": [
+    53.98,
+    85.6,
+    0.76
+   ]
+  },
+  {
+   "name": "card_4",
+   "role": "card",
+   "explode_z": -9.0,
+   "size_mm": [
+    53.98,
+    85.6,
+    0.76
+   ]
+  },
+  {
+   "name": "card_5",
+   "role": "card",
+   "explode_z": -9.0,
+   "size_mm": [
+    53.98,
+    85.6,
+    0.76
+   ]
+  },
+  {
+   "name": "card_6",
+   "role": "card",
+   "explode_z": -9.0,
+   "size_mm": [
+    53.98,
+    85.6,
+    0.76
+   ]
+  },
+  {
+   "name": "xiao",
+   "role": "pcb",
+   "explode_z": 5.0,
+   "size_mm": [
+    21.0,
+    17.8,
+    1.0
+   ]
+  },
+  {
+   "name": "xiao_usbc",
+   "role": "metal",
+   "explode_z": 5.0,
+   "size_mm": [
+    7.4,
+    9.0,
+    3.2
+   ]
+  },
+  {
+   "name": "r502",
+   "role": "sensor",
+   "explode_z": 14.0,
+   "size_mm": [
+    22.0,
+    22.0,
+    5.5
+   ]
+  },
+  {
+   "name": "lipo",
+   "role": "lipo",
+   "explode_z": 5.0,
+   "size_mm": [
+    30.0,
+    20.0,
+    4.2
+   ]
+  },
+  {
+   "name": "servo",
+   "role": "servo",
+   "explode_z": 3.0,
+   "size_mm": [
+    16.0,
+    15.5,
+    6.5
+   ]
+  },
+  {
+   "name": "led",
+   "role": "led",
+   "explode_z": 9.0,
+   "size_mm": [
+    3.8,
+    3.8,
+    4.5
+   ]
+  },
+  {
+   "name": "buzzer",
+   "role": "buzzer",
+   "explode_z": 9.0,
+   "size_mm": [
+    9.0,
+    9.0,
+    3.0
+   ]
+  },
+  {
+   "name": "screw_1",
+   "role": "metal",
+   "explode_z": 27.0,
+   "size_mm": [
+    3.8,
+    3.8,
+    13.6
+   ]
+  },
+  {
+   "name": "screw_2",
+   "role": "metal",
+   "explode_z": 27.0,
+   "size_mm": [
+    3.8,
+    3.8,
+    13.6
+   ]
+  },
+  {
+   "name": "screw_3",
+   "role": "metal",
+   "explode_z": 27.0,
+   "size_mm": [
+    3.8,
+    3.8,
+    13.6
+   ]
+  },
+  {
+   "name": "screw_4",
+   "role": "metal",
+   "explode_z": 27.0,
+   "size_mm": [
+    3.8,
+    3.8,
+    13.6
+   ]
+  }
+ ]
+}
